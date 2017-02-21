@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'sinatra'
+require 'sinatra/base'
 require 'yaml'
 require 'slim'
 require 'git'
@@ -20,14 +20,10 @@ class PITS < Sinatra::Base
   end
 
   get '/logs' do
-    # Change to the log dir
-    # Dir.chdir('../RA17_LogFileArchive')
-
     # add_test_file
     # git_commit
     pull_logs
-    # pp @error
-    # slim :error
+    "DONE"
   end
 
   get '/config' do
@@ -64,6 +60,9 @@ class PITS < Sinatra::Base
 
     # Push
     g.push
+  rescue GitExecuteError => error
+    pp 'Git error:'
+    pp error
   end
 
   def pull_logs
@@ -72,6 +71,8 @@ class PITS < Sinatra::Base
     Net::SSH.start(@config['robot']['ip'], @config['robot']['username'], :password => "") do |ssh|
       file_string = ssh.exec!('ls -At *.csv')
       files = file_string.split("\n")
+
+      ssh.exec!('mkdir oldLogs')
 
       # local_files = []
 
@@ -84,14 +85,21 @@ class PITS < Sinatra::Base
 
         temp.wait
 
+        move_command = 'mv ' + file + ' oldLogs/'
+        ssh.exec!(move_command)
+
         # local_files.push(temp)
       end
 
+      git_commit unless files.length.zero?
       # local_files.each(&:wait)
     end
     pp 'Done a thing...'
-  rescue SyntaxError, SocketError => error
+  rescue SocketError => error
     pp 'Sockets was no...'
+    pp error
+  rescue Net::SCP::Error => error
+    pp 'SCP was no...'
     pp error
   rescue StandardError => error
     pp 'Something was no...'
@@ -100,4 +108,4 @@ class PITS < Sinatra::Base
   end
 end
 
-PITS.run!
+PITS.run! if __FILE__ == $PROGRAM_NAME

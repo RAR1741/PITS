@@ -2,5 +2,5 @@ robot:
   ip: 'roborio-1751-frc.local'
   username: 'lvuser'
 log_settings:
-  repo_path:   '../RA17_LogFileArchive'
-  local_path:  '.'
+  repo_path:  '../RA17_LogFileArchive'
+  local_path: '../RA17_LogFileArchive/logs'

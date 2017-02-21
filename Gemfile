@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
-gem 'sinatra', '~> 1.4.5'
+gem 'sinatra'
 gem 'slim'
 gem 'git'
 gem 'net-scp'
+gem 'pry-byebug'
