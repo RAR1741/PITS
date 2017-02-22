@@ -76,7 +76,8 @@ class PITS < Sinatra::Base
     FileUtils::mkdir_p log_dir
 
     Net::SSH.start(@config['robot']['ip'], @config['robot']['username'], :password => '') do |ssh|
-      file_string = ssh.exec!('ls -At *.csv')
+      lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
+      file_string = ssh.exec!(lookup_command)
       files = file_string.split("\n")
 
       ssh.exec!('mkdir oldLogs')
@@ -85,9 +86,15 @@ class PITS < Sinatra::Base
 
       files.each do |file|
         pp file
+
+        # Make the local folder, if needed
+        log_date = file.match(/^.+?-(.+?)_/)[1]
+        date_dir = log_dir + log_date + '/'
+        FileUtils::mkdir_p date_dir
+
         temp = ssh.scp.download(
           file,
-          log_dir
+          date_dir
         )
 
         temp.wait
