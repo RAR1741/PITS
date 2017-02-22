@@ -14,17 +14,19 @@ class PITS < Sinatra::Base
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
-    @config['team_number'] = @config['robot']['ip'].match(/-(.*)-/)[1]
   end
 
   get '/' do
     slim :index
   end
 
-  get '/logs' do
+  get '/logs/:ip' do
     # add_test_file
     # git_commit
-    pull_logs
+
+    @config['team_number'] = params['ip'].match(/-(.*)-/)[1]
+
+    pull_logs params['ip']
     'DONE'
   end
 
@@ -67,15 +69,15 @@ class PITS < Sinatra::Base
     pp error
   end
 
-  def pull_logs
+  def pull_logs(ip)
     pp 'Doing a thing...'
 
     log_dir =
       @config['log_settings']['local_path'] + @config['team_number'] + '/'
 
-    FileUtils::mkdir_p log_dir
+    FileUtils.mkdir_p log_dir
 
-    Net::SSH.start(@config['robot']['ip'], @config['robot']['username'], :password => '') do |ssh|
+    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
       lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
       file_string = ssh.exec!(lookup_command)
       files = file_string.split("\n")
@@ -90,7 +92,7 @@ class PITS < Sinatra::Base
         # Make the local folder, if needed
         log_date = file.match(/^.+?-(.+?)_/)[1]
         date_dir = log_dir + log_date + '/'
-        FileUtils::mkdir_p date_dir
+        FileUtils.mkdir_p date_dir
 
         temp = ssh.scp.download(
           file,

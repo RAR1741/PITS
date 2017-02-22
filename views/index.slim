@@ -7,6 +7,25 @@ html
 
     #content
       p We should probably put some things here... ¯\_(ツ)_/¯
+
+      form id="ipForm"
+        input value='roborio-1741-frc.local' id="ip1" type='radio' name="robotIP" class="ip" checked="true"
+        label for="ip1"
+          | roborio-1741-frc.local
+        br
+
+        input value='roborio-1751-frc.local' id="ip2" type='radio' name="robotIP" class="ip"
+        label for="ip2"
+          | roborio-1751-frc.local
+        br
+
+        input value='other' id="ipO" type='radio' name="robotIP" class="ip"
+        label for="ipO"
+          | Other: 
+          input type='text' id="ip" value=''
+
+      br
+      br
       button type="button" id="getLogs" Get logs
 
     script src="lib/jquery.min.js"
