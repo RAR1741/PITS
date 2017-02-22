@@ -3,4 +3,4 @@ robot:
   username: 'lvuser'
 log_settings:
   repo_path:  '../RA17_LogFileArchive'
-  local_path: '../RA17_LogFileArchive/logs'
+  local_path: '../RA17_LogFileArchive/logs/'

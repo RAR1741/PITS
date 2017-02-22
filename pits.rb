@@ -7,12 +7,14 @@ require 'git'
 require 'pry'
 require 'net/ssh'
 require 'net/scp'
+require 'fileutils'
 
 # Main PITS class
 class PITS < Sinatra::Base
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
+    @config['team_number'] = @config['robot']['ip'].match(/-(.*)-/)[1]
   end
 
   get '/' do
@@ -23,7 +25,7 @@ class PITS < Sinatra::Base
     # add_test_file
     # git_commit
     pull_logs
-    "DONE"
+    'DONE'
   end
 
   get '/config' do
@@ -68,7 +70,12 @@ class PITS < Sinatra::Base
   def pull_logs
     pp 'Doing a thing...'
 
-    Net::SSH.start(@config['robot']['ip'], @config['robot']['username'], :password => "") do |ssh|
+    log_dir =
+      @config['log_settings']['local_path'] + @config['team_number'] + '/'
+
+    FileUtils::mkdir_p log_dir
+
+    Net::SSH.start(@config['robot']['ip'], @config['robot']['username'], :password => '') do |ssh|
       file_string = ssh.exec!('ls -At *.csv')
       files = file_string.split("\n")
 
@@ -80,13 +87,14 @@ class PITS < Sinatra::Base
         pp file
         temp = ssh.scp.download(
           file,
-          @config['log_settings']['local_path']
+          log_dir
         )
 
         temp.wait
 
         move_command = 'mv ' + file + ' oldLogs/'
-        ssh.exec!(move_command)
+        # TODO: ADD THIS BACK
+        # ssh.exec!(move_command)
 
         # local_files.push(temp)
       end
@@ -94,15 +102,19 @@ class PITS < Sinatra::Base
       git_commit unless files.length.zero?
       # local_files.each(&:wait)
     end
-    pp 'Done a thing...'
+    pp 'Finished with no errors...'
   rescue SocketError => error
-    pp 'Sockets was no...'
-    pp error
+    if !error.message[/getaddrinfo/].nil?
+      pp 'Robot not found...'
+    else
+      pp 'Some other socket thing was a no'
+      pp error
+    end
   rescue Net::SCP::Error => error
     pp 'SCP was no...'
     pp error
   rescue StandardError => error
-    pp 'Something was no...'
+    pp 'Something else was no...'
     pp error
     # @error = 'Error: robot not found.   :('
   end
