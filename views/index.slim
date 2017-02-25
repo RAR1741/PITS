@@ -1,33 +1,45 @@
 html
   head
     title PITS
+    link href="css/index.css" rel='stylesheet' type='text/css'
 
   body
     h1 PITS
 
     #content
-      p We should probably put some things here... ¯\_(ツ)_/¯
+      div.half.left
+        p We should probably put some things here... ¯\_(ツ)_/¯
 
-      form id="ipForm"
-        input value='roborio-1741-frc.local' id="ip1" type='radio' name="robotIP" class="ip"
-        label for="ip1"
-          | roborio-1741-frc.local
+        form id="ipForm"
+          input value='roborio-1741-frc.local' id="ip1" type='radio' name="robotIP" class="ip"
+          label for="ip1"
+            | roborio-1741-frc.local
+          br
+
+          input value='roborio-1751-frc.local' id="ip2" type='radio' name="robotIP" class="ip"
+          label for="ip2"
+            | roborio-1751-frc.local
+          br
+
+          input value='other' id="ipO" type='radio' name="robotIP" class="ip"
+          label for="ipO"
+            | Other: 
+            input type='text' id="ip" value=''
+
+        button type="button" id="getLogs" Get logs
+      
+      div.half.right
+        button type="button" id="getConfig" Get config
+        button type="button" id="pushConfig" Push config
+
+        br
         br
 
-        input value='roborio-1751-frc.local' id="ip2" type='radio' name="robotIP" class="ip"
-        label for="ip2"
-          | roborio-1751-frc.local
-        br
+        div#editor
 
-        input value='other' id="ipO" type='radio' name="robotIP" class="ip"
-        label for="ipO"
-          | Other: 
-          input type='text' id="ip" value=''
-
-      br
-      br
-      button type="button" id="getLogs" Get logs
-
-    script src="lib/jquery.min.js"
-    script src="storage.js"
-    script src="main.js"
+    script src="js/lib/jquery.min.js"
+    script src="js/lib/ace/ace.js"
+    script src="js/lib/ace/mode-ini.js"
+    script src="js/storage.js"
+    script src="js/config.js"
+    script src="js/main.js"

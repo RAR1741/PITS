@@ -26,12 +26,23 @@ class PITS < Sinatra::Base
 
     @config['team_number'] = params['ip'].match(/-(.*)-/)[1]
 
-    pull_logs params['ip']
-    'DONE'
+    if @config['logs']['actually_get_logs']
+      pull_logs params['ip']
+      'DONE'
+    else
+      'Not doing the log thing...'
+    end
   end
 
-  get '/config' do
-    @config.inspect
+  get '/config/get/:ip' do
+    # @config.inspect
+    get_config params['ip']
+  end
+
+  get '/css/*.css' do
+    content_type 'text/css', :charset => 'utf-8'
+    filename = params[:splat].first
+    scss filename.to_sym, views: "#{settings.root}/public/css"
   end
 
   def add_test_file
@@ -44,6 +55,34 @@ class PITS < Sinatra::Base
     file = File.open(file_path, 'a')
     file.write('Some stuff and things...')
     file.close
+  end
+
+  def get_config(ip)
+    contents = ''
+    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+      remote_file = 'config.txt'
+      local_file = 'config.txt'
+
+      temp = ssh.scp.download(
+        remote_file,
+        local_file
+      )
+
+      temp.wait
+
+      file = File.open(local_file, 'r')
+      contents = file.read
+      file.close
+    end
+
+    contents
+  rescue SocketError => error
+    if !error.message[/getaddrinfo/].nil?
+      pp 'Robot not found...'
+    else
+      pp 'Some other socket thing was a no...'
+      pp error
+    end
   end
 
   def git_commit
@@ -87,7 +126,7 @@ class PITS < Sinatra::Base
       # local_files = []
 
       files.each do |file|
-        pp file
+        pp "Pulling file: #{file}"
 
         # Make the local folder, if needed
         log_date = file.match(/^.+?-(.+?)_/)[1]
@@ -101,9 +140,10 @@ class PITS < Sinatra::Base
 
         temp.wait
 
-        move_command = 'mv ' + file + ' oldLogs/'
-        # TODO: ADD THIS BACK
-        # ssh.exec!(move_command)
+        if @config['logs']['delete_logs']
+          delete_command = 'rm ' + file
+          ssh.exec!(delete_command)
+        end
 
         # local_files.push(temp)
       end

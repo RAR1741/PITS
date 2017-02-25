@@ -1,27 +1,44 @@
 $(function(){
 
   window.session = new Session(false);
+  window.config = new Config();
+
+  setupEditor();
 
   loadDefaultIP();
 
   $("#getLogs").click(getLogs);
+
+  $("#getConfig").click(window.config.getConfig);
+  $("#pushConfig").click(window.config.pushConfig);
 });
+
+function setupEditor() {
+  var editor = ace.edit("editor");
+
+  // Change the mode to ini
+  var JavaScriptMode = ace.require("ace/mode/ini").Mode;
+  editor.session.setMode(new JavaScriptMode());
+}
 
 function getLogs() {
   console.log("Getting logs...");
 
+  $.ajax({
+    url: "/logs/"+getRobotIP(),
+  }).done(function(result) {
+    console.log(result);
+  });
+}
+
+function getRobotIP() {
   var robotIP = $('input[name=robotIP]').filter(':checked' ).val();
   if (robotIP == 'other') {
     robotIP = $('#ip').val();
   }
-
   session.setItem("defaultIP", robotIP);
 
-  // $.ajax({
-  //   url: "/logs/"+robotIP,
-  // }).done(function(result) {
-  //   console.log(result);
-  // });
+  return robotIP
 }
 
 function loadDefaultIP() {

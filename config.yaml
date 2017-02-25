@@ -1,3 +1,6 @@
+logs:
+  delete_logs: false
+  actually_get_logs: false
 robot:
   ip: 'roborio-1751-frc.local'
   username: 'lvuser'
