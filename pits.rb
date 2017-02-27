@@ -8,6 +8,7 @@ require 'pry'
 require 'net/ssh'
 require 'net/scp'
 require 'fileutils'
+require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
