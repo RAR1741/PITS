@@ -14,11 +14,12 @@ $(function(){
 });
 
 function setupEditor() {
-  var editor = ace.edit("editor");
+  window.editor = ace.edit("editor");
 
   // Change the mode to ini
   var JavaScriptMode = ace.require("ace/mode/ini").Mode;
   editor.session.setMode(new JavaScriptMode());
+  editor.$blockScrolling = Infinity
 }
 
 function getLogs() {
