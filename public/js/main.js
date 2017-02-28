@@ -11,6 +11,14 @@ $(function(){
 
   $("#getConfig").click(window.config.getConfig);
   $("#pushConfig").click(window.config.pushConfig);
+
+  $(document).ajaxSend(function(event, request, settings) {
+    $('#loading-indicator').show();
+  });
+
+  $(document).ajaxComplete(function(event, request, settings) {
+    $('#loading-indicator').hide();
+  });
 });
 
 function setupEditor() {
