@@ -43,7 +43,7 @@ class PITS < Sinatra::Base
   get '/css/*.css' do
     content_type 'text/css', :charset => 'utf-8'
     filename = params[:splat].first
-    scss filename.to_sym, views: "#{settings.root}/public/css"
+    scss filename.to_sym, views: "#{settings.root}/stylesheets"
   end
 
   def add_test_file
