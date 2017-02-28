@@ -15,6 +15,7 @@ class PITS < Sinatra::Base
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
+    # @config.inspect
   end
 
   get '/' do
@@ -36,8 +37,17 @@ class PITS < Sinatra::Base
   end
 
   get '/config/get/:ip' do
-    # @config.inspect
     get_config params['ip']
+  end
+
+  post '/config/put/:ip' do
+    contents = request.body.read
+
+    file = File.open('config.txt', 'w')
+    file.write(contents)
+    file.close
+
+    put_config params['ip']
   end
 
   get '/css/*.css' do
@@ -56,6 +66,30 @@ class PITS < Sinatra::Base
     file = File.open(file_path, 'a')
     file.write('Some stuff and things...')
     file.close
+  end
+
+  def put_config(ip)
+    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+      # Initial upload
+      ssh.scp.upload! 'config.txt', 'config.txt.bak'
+
+      # Download the temp file
+      temp = ssh.scp.download(
+        'config.txt.bak',
+        'config.txt.bak'
+      )
+
+      temp.wait
+
+      file_1_contents = File.open('config.txt', 'r').read
+      file_2_contents = File.open('config.txt.bak', 'r').read
+
+      if file_1_contents == file_2_contents
+        # Rename the new remote file
+        rename_command = 'mv config.txt.bak config.txt'
+        ssh.exec!(rename_command)
+      end
+    end
   end
 
   def get_config(ip)
