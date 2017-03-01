@@ -3,7 +3,6 @@
 require 'sinatra/base'
 require 'yaml'
 require 'slim'
-require 'git'
 require 'pry'
 require 'net/ssh'
 require 'net/scp'
@@ -15,6 +14,13 @@ class PITS < Sinatra::Base
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
+
+    repo_path =
+      File.join(
+        Dir.pwd,
+        @config['log_settings']['repo_path']
+      )
+    @git_command = "git '--git-dir=#{repo_path}/.git' '--work-tree=#{repo_path}'"
     # @config.inspect
   end
 
@@ -30,9 +36,9 @@ class PITS < Sinatra::Base
 
     if @config['logs']['actually_get_logs']
       pull_logs params['ip']
-      'DONE'
+      pp 'Done getting logs...'
     else
-      'Not doing the log thing...'
+      pp 'Not doing the log thing...'
     end
   end
 
@@ -120,31 +126,25 @@ class PITS < Sinatra::Base
     end
   end
 
+  def git_update
+    system("#{@git_command} checkout master 2>&1")
+    system("#{@git_command} pull  2>&1")
+  end
+
   def git_commit
-    repo_path =
-      File.join(
-        Dir.pwd,
-        @config['log_settings']['repo_path']
-      )
-
-    # Setup the Git object
-    g = Git.open(repo_path, log: Logger.new(STDOUT))
-
     # Add all files
-    g.add(all: true)
+    system("#{@git_command} add '--all' '--' '.'  2>&1")
 
     # Commit
-    g.commit(Time.now.strftime('Files added on %m/%d/%Y at %I:%M%p'))
+    message = Time.now.strftime('Files added on %m/%d/%Y at %I:%M%p')
+    system("#{@git_command} commit '--message=#{message}'  2>&1")
 
     # Push
-    g.push
-  rescue GitExecuteError => error
-    pp 'Git error:'
-    pp error
+    system("#{@git_command} push 'origin' 'master'  2>&1")
   end
 
   def pull_logs(ip)
-    pp 'Doing a thing...'
+    pp 'Starting to pull logs...'
 
     log_dir =
       @config['log_settings']['local_path'] + @config['team_number'] + '/'
@@ -154,37 +154,37 @@ class PITS < Sinatra::Base
     Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
       lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
       file_string = ssh.exec!(lookup_command)
-      files = file_string.split("\n")
 
-      ssh.exec!('mkdir oldLogs')
+      if file_string == "ls: logs/*.csv: No such file or directory\n"
+        return 'No log files found...'
+      else
+        files = file_string.split("\n")
 
-      # local_files = []
+        git_update
 
-      files.each do |file|
-        pp "Pulling file: #{file}"
+        files.each do |file|
+          pp "Pulling file: #{file}"
 
-        # Make the local folder, if needed
-        log_date = file.match(/^.+?-(.+?)_/)[1]
-        date_dir = log_dir + log_date + '/'
-        FileUtils.mkdir_p date_dir
+          # Make the local folder, if needed
+          log_date = file.match(/^.+?-(.+?)_/)[1]
+          date_dir = log_dir + log_date + '/'
+          FileUtils.mkdir_p date_dir
 
-        temp = ssh.scp.download(
-          file,
-          date_dir
-        )
+          temp = ssh.scp.download(
+            file,
+            date_dir
+          )
 
-        temp.wait
+          temp.wait
 
-        if @config['logs']['delete_logs']
-          delete_command = 'rm ' + file
-          ssh.exec!(delete_command)
+          if @config['logs']['delete_logs']
+            delete_command = 'rm ' + file
+            ssh.exec!(delete_command)
+          end
         end
 
-        # local_files.push(temp)
+        git_commit unless files.length.zero?
       end
-
-      git_commit unless files.length.zero?
-      # local_files.each(&:wait)
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
@@ -197,10 +197,6 @@ class PITS < Sinatra::Base
   rescue Net::SCP::Error => error
     pp 'SCP was no...'
     pp error
-  rescue StandardError => error
-    pp 'Something else was no...'
-    pp error
-    # @error = 'Error: robot not found.   :('
   end
 end
 
