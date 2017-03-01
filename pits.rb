@@ -101,16 +101,15 @@ class PITS < Sinatra::Base
 
   def get_config(ip)
     contents = ''
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+    Net::FTP.open(ip) do |ftp|
       remote_file = 'config.txt'
       local_file = 'config.txt'
-
-      temp = ssh.scp.download(
+      ftp.login
+      ftp.chdir('/home/lvuser')
+      temp = ftp.gettextfile(
         remote_file,
         local_file
       )
-
-      temp.wait
 
       file = File.open(local_file, 'r')
       contents = file.read
