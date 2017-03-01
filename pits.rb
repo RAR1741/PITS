@@ -179,10 +179,9 @@ class PITS < Sinatra::Base
         )
         pp 'get'
 
-        #if @config['logs']['delete_logs']
-        #  delete_command = 'rm ' + file
-        #  ssh.exec!(delete_command)
-        #end
+        if @config['logs']['delete_logs']
+          ftp.delete(file)
+        end
 
         git_commit unless files.length.zero?
       end
