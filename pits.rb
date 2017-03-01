@@ -6,6 +6,7 @@ require 'slim'
 require 'pry'
 require 'net/ssh'
 require 'net/scp'
+require 'net/ftp'
 require 'fileutils'
 require 'sass'
 
@@ -146,42 +147,42 @@ class PITS < Sinatra::Base
   def pull_logs(ip)
     pp 'Starting to pull logs...'
 
-    log_dir =
-      @config['log_settings']['local_path'] + @config['team_number'] + '/'
+    log_dir = @config['log_settings']['local_path'] + @config['team_number'] + '/'
 
     FileUtils.mkdir_p log_dir
 
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
-      lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
-      file_string = ssh.exec!(lookup_command)
+    Net::FTP.open(ip) do |ftp|
+      ftp.login
+      ftp.chdir("/home/lvuser/#{@config['log_settings']['remote_path']}")
 
-      if file_string == "ls: logs/*.csv: No such file or directory\n"
-        return 'No log files found...'
-      else
-        files = file_string.split("\n")
 
-        git_update
 
-        files.each do |file|
-          pp "Pulling file: #{file}"
+      #lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
+      #file_string = ssh.exec!(lookup_command)
+      #files = file_string.split("\n")
 
-          # Make the local folder, if needed
-          log_date = file.match(/^.+?-(.+?)_/)[1]
-          date_dir = log_dir + log_date + '/'
-          FileUtils.mkdir_p date_dir
+      #ssh.exec!('mkdir oldLogs')
 
-          temp = ssh.scp.download(
-            file,
-            date_dir
-          )
+      #local_files = []
+      ftp.nlst().each do |file|
+        pp file
+        # Make the local folder, if needed
+        log_date = file.match(/^.+?-(.+?)_/)[1]
+        pp 'log_date'
+        date_dir = log_dir + log_date + '/'
+        pp date_dir
+        FileUtils.mkdir_p date_dir
+        pp 'mkdir'
+        temp = ftp.gettextfile(
+          file,
+          date_dir + file
+        )
+        pp 'get'
 
-          temp.wait
-
-          if @config['logs']['delete_logs']
-            delete_command = 'rm ' + file
-            ssh.exec!(delete_command)
-          end
-        end
+        #if @config['logs']['delete_logs']
+        #  delete_command = 'rm ' + file
+        #  ssh.exec!(delete_command)
+        #end
 
         git_commit unless files.length.zero?
       end
