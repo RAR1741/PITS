@@ -5,7 +5,6 @@ require 'yaml'
 require 'slim'
 require 'pry'
 require 'net/ssh'
-require 'net/scp'
 require 'net/ftp'
 require 'fileutils'
 require 'sass'
@@ -77,6 +76,7 @@ class PITS < Sinatra::Base
 
   def put_config(ip)
     Net::FTP.open(ip) do |ftp|
+      #login and change directory
       ftp.login
       ftp.chdir('/home/lvuser')
       # Initial upload
@@ -91,6 +91,7 @@ class PITS < Sinatra::Base
       file_1_contents = File.open('config.txt', 'r').read
       file_2_contents = File.open('config.txt.bak', 'r').read
 
+      #rename and overwrite old config
       if file_1_contents == file_2_contents
         ftp.rename('config.txt.bak', 'config.txt')
       end
@@ -102,8 +103,10 @@ class PITS < Sinatra::Base
     Net::FTP.open(ip) do |ftp|
       remote_file = 'config.txt'
       local_file = 'config.txt'
+      #login to ftp and change directory
       ftp.login
       ftp.chdir('/home/lvuser')
+      #copy the file to local
       temp = ftp.gettextfile(
         remote_file,
         local_file
@@ -149,32 +152,21 @@ class PITS < Sinatra::Base
     FileUtils.mkdir_p log_dir
 
     Net::FTP.open(ip) do |ftp|
+      #login and change directory
       ftp.login
       ftp.chdir("/home/lvuser/#{@config['log_settings']['remote_path']}")
 
-
-
-      #lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
-      #file_string = ssh.exec!(lookup_command)
-      #files = file_string.split("\n")
-
-      #ssh.exec!('mkdir oldLogs')
-
-      #local_files = []
       ftp.nlst().each do |file|
-        pp file
         # Make the local folder, if needed
         log_date = file.match(/^.+?-(.+?)_/)[1]
-        pp 'log_date'
         date_dir = log_dir + log_date + '/'
-        pp date_dir
         FileUtils.mkdir_p date_dir
-        pp 'mkdir'
-        temp = ftp.gettextfile(
+
+        #move the file local
+        ftp.gettextfile(
           file,
           date_dir + file
         )
-        pp 'get'
 
         if @config['logs']['delete_logs']
           ftp.delete(file)
@@ -191,8 +183,8 @@ class PITS < Sinatra::Base
       pp 'Some other socket thing was a no'
       pp error
     end
-  rescue Net::SCP::Error => error
-    pp 'SCP was no...'
+  rescue Net::FTP::Error => error
+    pp 'FTP was no...'
     pp error
   end
 end
