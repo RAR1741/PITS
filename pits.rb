@@ -76,25 +76,23 @@ class PITS < Sinatra::Base
   end
 
   def put_config(ip)
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+    Net::FTP.open(ip) do |ftp|
+      ftp.login
+      ftp.chdir('/home/lvuser')
       # Initial upload
-      ssh.scp.upload! 'config.txt', 'config.txt.bak'
+      ftp.puttextfile 'config.txt', 'config.txt.bak'
 
       # Download the temp file
-      temp = ssh.scp.download(
+      ftp.gettextfile(
         'config.txt.bak',
         'config.txt.bak'
       )
-
-      temp.wait
 
       file_1_contents = File.open('config.txt', 'r').read
       file_2_contents = File.open('config.txt.bak', 'r').read
 
       if file_1_contents == file_2_contents
-        # Rename the new remote file
-        rename_command = 'mv config.txt.bak config.txt'
-        ssh.exec!(rename_command)
+        ftp.rename('config.txt.bak', 'config.txt')
       end
     end
   end
