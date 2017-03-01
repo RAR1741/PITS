@@ -1,7 +1,6 @@
 source 'https://rubygems.org'
 gem 'sinatra'
 gem 'slim'
-gem 'git'
 gem 'sass'
 gem 'net-scp'
 gem 'pry-byebug'
