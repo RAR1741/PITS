@@ -4,8 +4,7 @@ require 'sinatra/base'
 require 'yaml'
 require 'slim'
 require 'pry'
-require 'net/ssh'
-require 'net/scp'
+require 'net/ftp'
 require 'fileutils'
 require 'sass'
 
@@ -75,41 +74,42 @@ class PITS < Sinatra::Base
   end
 
   def put_config(ip)
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+    Net::FTP.open(ip) do |ftp|
+      #login and change directory
+      ftp.login
+      ftp.chdir("#{@config['log_settings']['ftp_path']}")
       # Initial upload
-      ssh.scp.upload! 'config.txt', 'config.txt.bak'
+      ftp.puttextfile 'config.txt', 'config.txt.bak'
 
       # Download the temp file
-      temp = ssh.scp.download(
+      ftp.gettextfile(
         'config.txt.bak',
         'config.txt.bak'
       )
 
-      temp.wait
-
       file_1_contents = File.open('config.txt', 'r').read
       file_2_contents = File.open('config.txt.bak', 'r').read
 
+      #rename and overwrite old config
       if file_1_contents == file_2_contents
-        # Rename the new remote file
-        rename_command = 'mv config.txt.bak config.txt'
-        ssh.exec!(rename_command)
+        ftp.rename('config.txt.bak', 'config.txt')
       end
     end
   end
 
   def get_config(ip)
     contents = ''
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+    Net::FTP.open(ip) do |ftp|
       remote_file = 'config.txt'
       local_file = 'config.txt'
-
-      temp = ssh.scp.download(
+      #login to ftp and change directory
+      ftp.login
+      ftp.chdir("#{@config['log_settings']['ftp_path']}")
+      #copy the file to local
+      temp = ftp.gettextfile(
         remote_file,
         local_file
       )
-
-      temp.wait
 
       file = File.open(local_file, 'r')
       contents = file.read
@@ -146,45 +146,46 @@ class PITS < Sinatra::Base
   def pull_logs(ip)
     pp 'Starting to pull logs...'
 
-    log_dir =
-      @config['log_settings']['local_path'] + @config['team_number'] + '/'
+    log_dir = @config['log_settings']['local_path'] + @config['team_number'] + '/'
 
     FileUtils.mkdir_p log_dir
 
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
-      lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
-      file_string = ssh.exec!(lookup_command)
+    Net::FTP.open(ip) do |ftp|
+      #login and change directory
+      ftp.login
 
-      if file_string == "ls: logs/*.csv: No such file or directory\n"
-        return 'No log files found...'
-      else
-        files = file_string.split("\n")
+      chdir_path =
+        @config['log_settings']['ftp_path'] +
+        @config['log_settings']['remote_path']
 
-        git_update
+      ftp.chdir("#{chdir_path}")
 
-        files.each do |file|
-          pp "Pulling file: #{file}"
+      git_update
 
-          # Make the local folder, if needed
-          log_date = file.match(/^.+?-(.+?)_/)[1]
-          date_dir = log_dir + log_date + '/'
-          FileUtils.mkdir_p date_dir
+      pulled_file = false
 
-          temp = ssh.scp.download(
-            file,
-            date_dir
-          )
+      ftp.nlst().each do |file|
+        pp "Pulling file: #{file}"
 
-          temp.wait
+        # Make the local folder, if needed
+        log_date = file.match(/^.+?-(.+?)_/)[1]
+        date_dir = log_dir + log_date + '/'
+        FileUtils.mkdir_p date_dir
 
-          if @config['logs']['delete_logs']
-            delete_command = 'rm ' + file
-            ssh.exec!(delete_command)
-          end
+        # Move the file local
+        ftp.gettextfile(
+          file,
+          date_dir + file
+        )
+
+        if @config['logs']['delete_logs']
+          ftp.delete(file)
         end
 
-        git_commit unless files.length.zero?
+        pulled_file = true
       end
+
+      git_commit if pulled_file
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
@@ -194,9 +195,6 @@ class PITS < Sinatra::Base
       pp 'Some other socket thing was a no'
       pp error
     end
-  rescue Net::SCP::Error => error
-    pp 'SCP was no...'
-    pp error
   end
 end
 
