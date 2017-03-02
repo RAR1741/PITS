@@ -78,7 +78,7 @@ class PITS < Sinatra::Base
     Net::FTP.open(ip) do |ftp|
       #login and change directory
       ftp.login
-      ftp.chdir('/home/lvuser')
+      ftp.chdir("#{@config['log_settings']['ftp_path']}")
       # Initial upload
       ftp.puttextfile 'config.txt', 'config.txt.bak'
 
@@ -105,7 +105,7 @@ class PITS < Sinatra::Base
       local_file = 'config.txt'
       #login to ftp and change directory
       ftp.login
-      ftp.chdir('/home/lvuser')
+      ftp.chdir("#{@config['log_settings']['ftp_path']}")
       #copy the file to local
       temp = ftp.gettextfile(
         remote_file,
@@ -144,6 +144,12 @@ class PITS < Sinatra::Base
     system("#{@git_command} push 'origin' 'master'  2>&1")
   end
 
+  def make_date_folder(log_dir, file_name)
+    log_date = file_name.match(/^.+?-(.+?)_/)[1]
+    date_dir = log_dir + log_date + '/'
+    FileUtils.mkdir_p date_dir
+  end
+
   def pull_logs(ip)
     pp 'Starting to pull logs...'
 
@@ -154,13 +160,20 @@ class PITS < Sinatra::Base
     Net::FTP.open(ip) do |ftp|
       #login and change directory
       ftp.login
-      ftp.chdir("/home/lvuser/#{@config['log_settings']['remote_path']}")
+
+      chdir_path =
+        @config['log_settings']['ftp_path'] +
+        @config['log_settings']['remote_path']
+
+      ftp.chdir("#{chdir_path}")
+
+      git_update
 
       ftp.nlst().each do |file|
+        pp "Pulling file: #{file}"
+
         # Make the local folder, if needed
-        log_date = file.match(/^.+?-(.+?)_/)[1]
-        date_dir = log_dir + log_date + '/'
-        FileUtils.mkdir_p date_dir
+        make_date_folder log_dir file
 
         #move the file local
         ftp.gettextfile(

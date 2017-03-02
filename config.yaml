@@ -7,4 +7,5 @@ robot:
 log_settings:
   repo_path:  'RA17_LogFileArchive'
   local_path: 'RA17_LogFileArchive/logs/'
+  ftp_path:   '/home/lvuser/'
   remote_path: 'logs/'
