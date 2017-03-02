@@ -4,7 +4,6 @@ require 'sinatra/base'
 require 'yaml'
 require 'slim'
 require 'pry'
-require 'net/ssh'
 require 'net/ftp'
 require 'fileutils'
 require 'sass'
@@ -144,12 +143,6 @@ class PITS < Sinatra::Base
     system("#{@git_command} push 'origin' 'master'  2>&1")
   end
 
-  def make_date_folder(log_dir, file_name)
-    log_date = file_name.match(/^.+?-(.+?)_/)[1]
-    date_dir = log_dir + log_date + '/'
-    FileUtils.mkdir_p date_dir
-  end
-
   def pull_logs(ip)
     pp 'Starting to pull logs...'
 
@@ -169,13 +162,17 @@ class PITS < Sinatra::Base
 
       git_update
 
+      pulled_file = false
+
       ftp.nlst().each do |file|
         pp "Pulling file: #{file}"
 
         # Make the local folder, if needed
-        make_date_folder log_dir file
+        log_date = file.match(/^.+?-(.+?)_/)[1]
+        date_dir = log_dir + log_date + '/'
+        FileUtils.mkdir_p date_dir
 
-        #move the file local
+        # Move the file local
         ftp.gettextfile(
           file,
           date_dir + file
@@ -185,8 +182,10 @@ class PITS < Sinatra::Base
           ftp.delete(file)
         end
 
-        git_commit unless files.length.zero?
+        pulled_file = true
       end
+
+      git_commit if pulled_file
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
@@ -196,9 +195,6 @@ class PITS < Sinatra::Base
       pp 'Some other socket thing was a no'
       pp error
     end
-  rescue Net::FTP::Error => error
-    pp 'FTP was no...'
-    pp error
   end
 end
 
