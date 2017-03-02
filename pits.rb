@@ -10,6 +10,7 @@ require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
+
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
@@ -20,11 +21,18 @@ class PITS < Sinatra::Base
         @config['log_settings']['repo_path']
       )
     @git_command = "git '--git-dir=#{repo_path}/.git' '--work-tree=#{repo_path}'"
+
+    status = 'Not Connected'
     # @config.inspect
   end
 
   get '/' do
+    #status = 'test'
     slim :index
+  end
+
+  get '/status' do
+    pp status
   end
 
   get '/logs/:ip' do
@@ -162,6 +170,8 @@ class PITS < Sinatra::Base
 
       git_update
 
+      status = 'Pulling Log Files'
+
       pulled_file = false
 
       ftp.nlst().each do |file|
@@ -185,7 +195,9 @@ class PITS < Sinatra::Base
         pulled_file = true
       end
 
+      status = 'Commiting Log Files'
       git_commit if pulled_file
+      status = 'Not Connected'
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
@@ -196,6 +208,15 @@ class PITS < Sinatra::Base
       pp error
     end
   end
+
+  def status=(val)
+    @@status = val
+  end
+
+  def status
+    @@status
+  end
+
 end
 
 PITS.run! if __FILE__ == $PROGRAM_NAME
