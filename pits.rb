@@ -16,7 +16,7 @@ class PITS < Sinatra::Base
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
-    status = 'Not Connected'
+    pits_status = 'Not Connected'
     # @config.inspect
   end
 
@@ -26,7 +26,7 @@ class PITS < Sinatra::Base
   end
   
   get '/status' do
-    pp status
+    pp pits_status
   end
 
   get '/logs/:ip' do
@@ -166,7 +166,7 @@ class PITS < Sinatra::Base
       ssh.exec!('mkdir oldLogs')
 
       # local_files = []
-      status = 'Pulling Log Files'
+      pits_status = 'Pulling Log Files'
 
       files.each do |file|
         pp "Pulling file: #{file}"
@@ -190,9 +190,9 @@ class PITS < Sinatra::Base
 
         # local_files.push(temp)
       end
-      status = 'Commiting Log Files'
+      pits_status = 'Commiting Log Files'
       git_commit unless files.length.zero?
-      status = 'Not Connected'
+      pits_status = 'Not Connected'
       # local_files.each(&:wait)
     end
     pp 'Finished with no errors...'
@@ -212,12 +212,12 @@ class PITS < Sinatra::Base
     # @error = 'Error: robot not found.   :('
   end
   
-  def status=(val)
-    @@status = val
+  def pits_status=(val)
+    @@pits_status = val
   end
   
-  def status
-    @@status
+  def pits_status
+    @@pits_status
   end
   
 end
