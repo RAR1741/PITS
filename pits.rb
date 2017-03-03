@@ -10,7 +10,10 @@ require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
-
+  set :show_exceptions, false
+  set :environment, :production
+  set :logging, false
+  
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
@@ -32,11 +35,7 @@ class PITS < Sinatra::Base
   end
   
   get '/status' do
-    pp pits_status
-  end
-
-  get '/status' do
-    pp pits_status
+    pp @@pits_status
   end
 
   get '/logs/:ip' do
@@ -161,6 +160,8 @@ class PITS < Sinatra::Base
     log_dir = @config['log_settings']['local_path'] + @config['team_number'] + '/'
 
     FileUtils.mkdir_p log_dir
+    
+    @@pits_status = 'Connecting to Robot'
 
     Net::FTP.open(ip) do |ftp|
       #login and change directory
@@ -174,7 +175,7 @@ class PITS < Sinatra::Base
 
       git_update
 
-      pits_status = 'Pulling Log Files'
+      @@pits_status = 'Pulling Log Files'
 
       pulled_file = false
 
@@ -199,9 +200,9 @@ class PITS < Sinatra::Base
         pulled_file = true
       end
 
-      pits_status = 'Commiting Log Files'
+      @@pits_status = 'Commiting Log Files'
       git_commit if pulled_file
-      pits_status = 'Not Connected'
+      @@pits_status = 'Not Connected'
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
@@ -212,15 +213,6 @@ class PITS < Sinatra::Base
       pp error
     end
   end
-
-  def pits_status=(val)
-    @@pits_status = val
-  end
-
-  def pits_status
-    @@pits_status
-  end
-
 end
 
 PITS.run! if __FILE__ == $PROGRAM_NAME

@@ -6,6 +6,9 @@ $(function(){
   setupEditor();
 
   loadDefaultIP();
+  
+  setInterval(setStatus, 1000);
+  //setStatus();
 
   $("#getLogs").click(getLogs);
 
@@ -13,11 +16,15 @@ $(function(){
   $("#pushConfig").click(window.config.pushConfig);
 
   $(document).ajaxSend(function(event, request, settings) {
-    $('#loading-indicator').show();
+    if(!settings.url.match("/status")) {
+    	$('#loading-indicator').show();
+    }
   });
 
   $(document).ajaxComplete(function(event, request, settings) {
-    $('#loading-indicator').hide();
+    if(!settings.url.match("/status")) {
+    	$('#loading-indicator').hide();
+    }
   });
 });
 
@@ -60,4 +67,12 @@ function loadDefaultIP() {
       $("input.ip[value='other']").prop("checked", true)
     }
   }
+}
+
+function setStatus() {
+  $.ajax({
+    url: "/status",
+  }).done(function(result) {
+    $("#status").text(result);
+  });
 }
