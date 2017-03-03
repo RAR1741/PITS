@@ -3,11 +3,7 @@ GEM
   specs:
     byebug (9.0.6)
     coderay (1.1.1)
-    git (1.3.0)
     method_source (0.8.2)
-    net-scp (1.2.1)
-      net-ssh (>= 2.6.5)
-    net-ssh (4.1.0)
     pry (0.10.4)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -35,8 +31,6 @@ PLATFORMS
   x64-mingw32
 
 DEPENDENCIES
-  git
-  net-scp
   pry-byebug
   sass
   sinatra

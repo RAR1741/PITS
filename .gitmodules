@@ -1,0 +1,4 @@
+[submodule "RA17_LogFileArchive"]
+	path = RA17_LogFileArchive
+	url = https://github.com/RAR1741/RA17_LogFileArchive.git
+	ignore = all

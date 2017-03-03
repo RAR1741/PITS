@@ -3,19 +3,25 @@
 require 'sinatra/base'
 require 'yaml'
 require 'slim'
-require 'git'
 require 'pry'
-require 'net/ssh'
-require 'net/scp'
+require 'net/ftp'
 require 'fileutils'
 require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
-  
+
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
+
+    repo_path =
+      File.join(
+        Dir.pwd,
+        @config['log_settings']['repo_path']
+      )
+    @git_command = "git '--git-dir=#{repo_path}/.git' '--work-tree=#{repo_path}'"
+
     pits_status = 'Not Connected'
     # @config.inspect
   end
@@ -29,6 +35,10 @@ class PITS < Sinatra::Base
     pp pits_status
   end
 
+  get '/status' do
+    pp pits_status
+  end
+
   get '/logs/:ip' do
     # add_test_file
     # git_commit
@@ -37,9 +47,9 @@ class PITS < Sinatra::Base
 
     if @config['logs']['actually_get_logs']
       pull_logs params['ip']
-      'DONE'
+      pp 'Done getting logs...'
     else
-      'Not doing the log thing...'
+      pp 'Not doing the log thing...'
     end
   end
 
@@ -76,41 +86,42 @@ class PITS < Sinatra::Base
   end
 
   def put_config(ip)
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+    Net::FTP.open(ip) do |ftp|
+      #login and change directory
+      ftp.login
+      ftp.chdir("#{@config['log_settings']['ftp_path']}")
       # Initial upload
-      ssh.scp.upload! 'config.txt', 'config.txt.bak'
+      ftp.puttextfile 'config.txt', 'config.txt.bak'
 
       # Download the temp file
-      temp = ssh.scp.download(
+      ftp.gettextfile(
         'config.txt.bak',
         'config.txt.bak'
       )
 
-      temp.wait
-
       file_1_contents = File.open('config.txt', 'r').read
       file_2_contents = File.open('config.txt.bak', 'r').read
 
+      #rename and overwrite old config
       if file_1_contents == file_2_contents
-        # Rename the new remote file
-        rename_command = 'mv config.txt.bak config.txt'
-        ssh.exec!(rename_command)
+        ftp.rename('config.txt.bak', 'config.txt')
       end
     end
   end
 
   def get_config(ip)
     contents = ''
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
+    Net::FTP.open(ip) do |ftp|
       remote_file = 'config.txt'
       local_file = 'config.txt'
-
-      temp = ssh.scp.download(
+      #login to ftp and change directory
+      ftp.login
+      ftp.chdir("#{@config['log_settings']['ftp_path']}")
+      #copy the file to local
+      temp = ftp.gettextfile(
         remote_file,
         local_file
       )
-
-      temp.wait
 
       file = File.open(local_file, 'r')
       contents = file.read
@@ -127,48 +138,47 @@ class PITS < Sinatra::Base
     end
   end
 
+  def git_update
+    system("#{@git_command} checkout master 2>&1")
+    system("#{@git_command} pull  2>&1")
+  end
+
   def git_commit
-    repo_path =
-      File.join(
-        Dir.pwd,
-        @config['log_settings']['repo_path']
-      )
-
-    # Setup the Git object
-    g = Git.open(repo_path, log: Logger.new(STDOUT))
-
     # Add all files
-    g.add(all: true)
+    system("#{@git_command} add '--all' '--' '.'  2>&1")
 
     # Commit
-    g.commit(Time.now.strftime('Files added on %m/%d/%Y at %I:%M%p'))
+    message = Time.now.strftime('Files added on %m/%d/%Y at %I:%M%p')
+    system("#{@git_command} commit '--message=#{message}'  2>&1")
 
     # Push
-    g.push
-  rescue GitExecuteError => error
-    pp 'Git error:'
-    pp error
+    system("#{@git_command} push 'origin' 'master'  2>&1")
   end
 
   def pull_logs(ip)
-    pp 'Doing a thing...'
+    pp 'Starting to pull logs...'
 
-    log_dir =
-      @config['log_settings']['local_path'] + @config['team_number'] + '/'
+    log_dir = @config['log_settings']['local_path'] + @config['team_number'] + '/'
 
     FileUtils.mkdir_p log_dir
 
-    Net::SSH.start(ip, @config['robot']['username'], :password => '') do |ssh|
-      lookup_command = "ls -At #{@config['log_settings']['remote_path']}*.csv"
-      file_string = ssh.exec!(lookup_command)
-      files = file_string.split("\n")
+    Net::FTP.open(ip) do |ftp|
+      #login and change directory
+      ftp.login
 
-      ssh.exec!('mkdir oldLogs')
+      chdir_path =
+        @config['log_settings']['ftp_path'] +
+        @config['log_settings']['remote_path']
 
-      # local_files = []
+      ftp.chdir("#{chdir_path}")
+
+      git_update
+
       pits_status = 'Pulling Log Files'
 
-      files.each do |file|
+      pulled_file = false
+
+      ftp.nlst().each do |file|
         pp "Pulling file: #{file}"
 
         # Make the local folder, if needed
@@ -176,24 +186,22 @@ class PITS < Sinatra::Base
         date_dir = log_dir + log_date + '/'
         FileUtils.mkdir_p date_dir
 
-        temp = ssh.scp.download(
+        # Move the file local
+        ftp.gettextfile(
           file,
-          date_dir
+          date_dir + file
         )
 
-        temp.wait
-
         if @config['logs']['delete_logs']
-          delete_command = 'rm ' + file
-          ssh.exec!(delete_command)
+          ftp.delete(file)
         end
 
-        # local_files.push(temp)
+        pulled_file = true
       end
+
       pits_status = 'Commiting Log Files'
-      git_commit unless files.length.zero?
+      git_commit if pulled_file
       pits_status = 'Not Connected'
-      # local_files.each(&:wait)
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
@@ -203,23 +211,16 @@ class PITS < Sinatra::Base
       pp 'Some other socket thing was a no'
       pp error
     end
-  rescue Net::SCP::Error => error
-    pp 'SCP was no...'
-    pp error
-  rescue StandardError => error
-    pp 'Something else was no...'
-    pp error
-    # @error = 'Error: robot not found.   :('
   end
-  
+
   def pits_status=(val)
     @@pits_status = val
   end
-  
+
   def pits_status
     @@pits_status
   end
-  
+
 end
 
 PITS.run! if __FILE__ == $PROGRAM_NAME

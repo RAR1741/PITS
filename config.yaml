@@ -1,10 +1,11 @@
 logs:
-  delete_logs: false
-  actually_get_logs: false
+  delete_logs: true
+  actually_get_logs: true
 robot:
   ip: 'roborio-1751-frc.local'
   username: 'lvuser'
 log_settings:
-  repo_path:  '../RA17_LogFileArchive'
-  local_path: '../RA17_LogFileArchive/logs/'
+  repo_path:  'RA17_LogFileArchive'
+  local_path: 'RA17_LogFileArchive/logs/'
+  ftp_path:   '/home/lvuser/'
   remote_path: 'logs/'
