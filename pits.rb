@@ -10,9 +10,6 @@ require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
-  set :show_exceptions, false
-  set :environment, :production
-  set :logging, false
   
   def initialize
     super()
@@ -131,8 +128,10 @@ class PITS < Sinatra::Base
   rescue SocketError => error
     if !error.message[/getaddrinfo/].nil?
       pp 'Robot not found...'
+      @@pits_status = "Robot Not Found"
     else
       pp 'Some other socket thing was a no...'
+      @@pits_status = "mumble mumble sockets"
       pp error
     end
   end
@@ -207,9 +206,11 @@ class PITS < Sinatra::Base
     pp 'Finished with no errors...'
   rescue SocketError => error
     if !error.message[/getaddrinfo/].nil?
+      @@pits_status = "Robot Not Found"
       pp 'Robot not found...'
     else
       pp 'Some other socket thing was a no'
+      @@pits_status = "mumble mumble sockets"
       pp error
     end
   end
