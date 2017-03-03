@@ -22,7 +22,7 @@ class PITS < Sinatra::Base
       )
     @git_command = "git '--git-dir=#{repo_path}/.git' '--work-tree=#{repo_path}'"
 
-    pits_status = 'Not Connected'
+    @@pits_status ||= 'Not Connected'
     # @config.inspect
   end
 
