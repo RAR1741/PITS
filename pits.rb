@@ -22,7 +22,7 @@ class PITS < Sinatra::Base
       )
     @git_command = "git '--git-dir=#{repo_path}/.git' '--work-tree=#{repo_path}'"
 
-    status = 'Not Connected'
+    pits_status = 'Not Connected'
     # @config.inspect
   end
 
@@ -32,7 +32,7 @@ class PITS < Sinatra::Base
   end
 
   get '/status' do
-    pp status
+    pp pits_status
   end
 
   get '/logs/:ip' do
@@ -170,7 +170,7 @@ class PITS < Sinatra::Base
 
       git_update
 
-      status = 'Pulling Log Files'
+      pits_status = 'Pulling Log Files'
 
       pulled_file = false
 
@@ -195,9 +195,9 @@ class PITS < Sinatra::Base
         pulled_file = true
       end
 
-      status = 'Commiting Log Files'
+      pits_status = 'Commiting Log Files'
       git_commit if pulled_file
-      status = 'Not Connected'
+      pits_status = 'Not Connected'
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
@@ -209,12 +209,12 @@ class PITS < Sinatra::Base
     end
   end
 
-  def status=(val)
-    @@status = val
+  def pits_status=(val)
+    @@pits_status = val
   end
 
-  def status
-    @@status
+  def pits_status
+    @@pits_status
   end
 
 end
