@@ -84,7 +84,6 @@ function getStatus() {
       } else if (result.status.match("working")) {
         c = "yellow";
       } else if (result.status.match("error")) {
-        console.log("red");
         c = "red";
       }
       $('#status').css('color', c);
