@@ -107,6 +107,15 @@ class PITS < Sinatra::Base
       end
     end
     @@pits_status = createJSON('Config Pushed', 'good')
+  rescue SocketError => error
+    if !error.message[/getaddrinfo/].nil?
+      @@pits_status = createJSON("Robot Not Found", 'error')
+      pp 'Robot not found...'
+    else
+      pp 'Some other socket thing was a no...'
+      @@pits_status = createJSON("mumble mumble sockets", 'error')
+      pp error
+    end
   end
 
   def get_config(ip)
@@ -133,8 +142,8 @@ class PITS < Sinatra::Base
     contents
   rescue SocketError => error
     if !error.message[/getaddrinfo/].nil?
-      pp 'Robot not found...'
       @@pits_status = createJSON("Robot Not Found", 'error')
+      pp 'Robot not found...'
     else
       pp 'Some other socket thing was a no...'
       @@pits_status = createJSON("mumble mumble sockets", 'error')
