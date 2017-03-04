@@ -73,8 +73,19 @@ function getStatus() {
 
   $.ajax({
     url: "/status",
+    dataType: 'json',
     success: function(result) {
-      setStatus(result);
+      setStatus(result.pits_status);
+      var c = "black";
+      if(result.status.match("good")) {
+        c = "green";
+      } else if (result.status.match("working")) {
+        c = "yellow";
+      } else if (result.status.match("error")) {
+        console.log("red");
+        c = "red";
+      }
+      $('#status').css('color', c);
     },
     error: function(arg1, arg2) {
       setStatus('Lost Connection to PITS');

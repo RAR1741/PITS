@@ -22,7 +22,7 @@ class PITS < Sinatra::Base
       )
     @git_command = "git '--git-dir=#{repo_path}/.git' '--work-tree=#{repo_path}'"
 
-    @@pits_status ||= 'Not Connected'
+    @@pits_status = createJSON('Not Connected', 'error')
     # @config.inspect
   end
 
@@ -82,17 +82,17 @@ class PITS < Sinatra::Base
   end
 
   def put_config(ip)
-    @@pits_status = 'Connecting to Robot'
+    @@pits_status = createJSON('Connecting to Robot', 'good')
     Net::FTP.open(ip) do |ftp|
       #login and change directory
       ftp.login
       ftp.chdir("#{@config['log_settings']['ftp_path']}")
       # Initial upload
-      @@pits_status = 'Uploading Config File'
+      @@pits_status = createJSON('Uploading Config File', 'working')
       ftp.puttextfile 'config.txt', 'config.txt.bak'
 
       # Download the temp file
-      @@pits_status = 'Verifying Config File'
+      @@pits_status = createJSON('Verifying Config File', 'working')
       ftp.gettextfile(
         'config.txt.bak',
         'config.txt.bak'
@@ -106,12 +106,12 @@ class PITS < Sinatra::Base
         ftp.rename('config.txt.bak', 'config.txt')
       end
     end
-    @@pits_status = 'Config Pushed'
+    @@pits_status = createJSON('Config Pushed', 'good')
   end
 
   def get_config(ip)
     contents = ''
-    @@pits_status = 'Connecting to Robot'
+    @@pits_status = createJSON('Connecting to Robot', 'good')
     Net::FTP.open(ip) do |ftp|
       remote_file = 'config.txt'
       local_file = 'config.txt'
@@ -119,7 +119,7 @@ class PITS < Sinatra::Base
       ftp.login
       ftp.chdir("#{@config['log_settings']['ftp_path']}")
       #copy the file to local
-      @@pits_status = 'Downloading Config File'
+      @@pits_status = createJSON('Downloading Config File', 'working')
       temp = ftp.gettextfile(
         remote_file,
         local_file
@@ -129,15 +129,15 @@ class PITS < Sinatra::Base
       contents = file.read
       file.close
     end
-    @@pits_status = 'Config Pulled'
+    @@pits_status = createJSON('Config Pulled', 'good')
     contents
   rescue SocketError => error
     if !error.message[/getaddrinfo/].nil?
       pp 'Robot not found...'
-      @@pits_status = "Robot Not Found"
+      @@pits_status = createJSON("Robot Not Found", 'error')
     else
       pp 'Some other socket thing was a no...'
-      @@pits_status = "mumble mumble sockets"
+      @@pits_status = createJSON("mumble mumble sockets", 'error')
       pp error
     end
   end
@@ -166,7 +166,7 @@ class PITS < Sinatra::Base
 
     FileUtils.mkdir_p log_dir
 
-    @@pits_status = 'Connecting to Robot'
+    @@pits_status = createJSON('Connecting to Robot', 'good')
 
     Net::FTP.open(ip) do |ftp|
       #login and change directory
@@ -180,7 +180,7 @@ class PITS < Sinatra::Base
 
       git_update
 
-      @@pits_status = 'Pulling Log Files'
+      @@pits_status = createJSON('Pulling Log Files', 'working')
 
       pulled_file = false
 
@@ -205,20 +205,24 @@ class PITS < Sinatra::Base
         pulled_file = true
       end
 
-      @@pits_status = 'Commiting Log Files'
+      @@pits_status = createJSON('Commiting Log Files', 'working')
       git_commit if pulled_file
-      @@pits_status = 'Logs Pulled'
+      @@pits_status = createJSON('Logs Pulled', 'good')
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
     if !error.message[/getaddrinfo/].nil?
-      @@pits_status = "Robot Not Found"
+      @@pits_status = createJSON("Robot Not Found", 'error')
       pp 'Robot not found...'
     else
       pp 'Some other socket thing was a no'
-      @@pits_status = "mumble mumble sockets"
+      @@pits_status = createJSON("mumble mumble sockets", 'error')
       pp error
     end
+  end
+
+  def createJSON (status, warn)
+    "{\"pits_status\":\"#{status}\",\"status\":\"#{warn}\"}"
   end
 end
 
