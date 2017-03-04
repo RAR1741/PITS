@@ -6,7 +6,7 @@ $(function(){
   setupEditor();
 
   loadDefaultIP();
-  
+
   setInterval(setStatus, 1000);
   //setStatus();
 
@@ -74,5 +74,7 @@ function setStatus() {
     url: "/status",
   }).done(function(result) {
     $("#status").text(result);
+    $("#load-status").text(result);
+    //console.log($("#load-status").text);
   });
 }
