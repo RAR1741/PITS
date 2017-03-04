@@ -10,7 +10,7 @@ require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
-  
+
   def initialize
     super()
     @config = YAML.load(File.read('config.yaml'))
@@ -30,7 +30,7 @@ class PITS < Sinatra::Base
     #status = 'test'
     slim :index
   end
-  
+
   get '/status' do
     pp @@pits_status
   end
@@ -82,14 +82,17 @@ class PITS < Sinatra::Base
   end
 
   def put_config(ip)
+    @@pits_status = 'Connecting to Robot'
     Net::FTP.open(ip) do |ftp|
       #login and change directory
       ftp.login
       ftp.chdir("#{@config['log_settings']['ftp_path']}")
       # Initial upload
+      @@pits_status = 'Uploading Config File'
       ftp.puttextfile 'config.txt', 'config.txt.bak'
 
       # Download the temp file
+      @@pits_status = 'Verifying Config File'
       ftp.gettextfile(
         'config.txt.bak',
         'config.txt.bak'
@@ -103,10 +106,12 @@ class PITS < Sinatra::Base
         ftp.rename('config.txt.bak', 'config.txt')
       end
     end
+    @@pits_status = 'Config Pushed'
   end
 
   def get_config(ip)
     contents = ''
+    @@pits_status = 'Connecting to Robot'
     Net::FTP.open(ip) do |ftp|
       remote_file = 'config.txt'
       local_file = 'config.txt'
@@ -114,6 +119,7 @@ class PITS < Sinatra::Base
       ftp.login
       ftp.chdir("#{@config['log_settings']['ftp_path']}")
       #copy the file to local
+      @@pits_status = 'Downloading Config File'
       temp = ftp.gettextfile(
         remote_file,
         local_file
@@ -123,7 +129,7 @@ class PITS < Sinatra::Base
       contents = file.read
       file.close
     end
-
+    @@pits_status = 'Config Pulled'
     contents
   rescue SocketError => error
     if !error.message[/getaddrinfo/].nil?
@@ -159,7 +165,7 @@ class PITS < Sinatra::Base
     log_dir = @config['log_settings']['local_path'] + @config['team_number'] + '/'
 
     FileUtils.mkdir_p log_dir
-    
+
     @@pits_status = 'Connecting to Robot'
 
     Net::FTP.open(ip) do |ftp|
@@ -201,7 +207,7 @@ class PITS < Sinatra::Base
 
       @@pits_status = 'Commiting Log Files'
       git_commit if pulled_file
-      @@pits_status = 'Not Connected'
+      @@pits_status = 'Logs Pulled'
     end
     pp 'Finished with no errors...'
   rescue SocketError => error
