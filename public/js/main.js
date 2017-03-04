@@ -91,6 +91,7 @@ function getStatus() {
     },
     error: function(arg1, arg2) {
       setStatus('Lost Connection to PITS');
+      $('#status').css('color', 'red');
       setTimeout(getStatus, 5000);
     },
   });
