@@ -7,7 +7,7 @@ $(function(){
 
   loadDefaultIP();
 
-  setInterval(setStatus, 1000);
+  setInterval(getStatus, 1000);
   //setStatus();
 
   $("#getLogs").click(getLogs);
@@ -69,12 +69,20 @@ function loadDefaultIP() {
   }
 }
 
-function setStatus() {
+function getStatus() {
+
   $.ajax({
     url: "/status",
-  }).done(function(result) {
-    $("#status").text(result);
-    $("#load-status").text(result);
-    //console.log($("#load-status").text);
+    success: function(result) {
+      setStatus(result);
+    },
+    error: function(arg1, arg2) {
+      setStatus('Lost Connection to PITS');
+    },
   });
+}
+
+function setStatus(text) {
+  $("#status").text(text);
+  $("#load-status").text(text);
 }
