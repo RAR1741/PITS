@@ -22,7 +22,7 @@ class PITS < Sinatra::Base
       )
     @git_command = "git '--git-dir=#{repo_path}/.git' '--work-tree=#{repo_path}'"
 
-    @@pits_status = createJSON('Not Connected', 'error')
+    @@pits_status = createJSON('Not Connected', 'good')
     # @config.inspect
   end
 
