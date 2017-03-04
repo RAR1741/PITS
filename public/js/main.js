@@ -18,12 +18,14 @@ $(function(){
   $(document).ajaxSend(function(event, request, settings) {
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').show();
+      getStatus();
     }
   });
 
   $(document).ajaxComplete(function(event, request, settings) {
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').hide();
+      getStatus();
     }
   });
 });
