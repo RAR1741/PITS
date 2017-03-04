@@ -7,7 +7,7 @@ $(function(){
 
   loadDefaultIP();
 
-  setTimeout(getStatus, 1000);
+  setTimeout(getStatusLoop, 1000);
   //setStatus();
 
   $("#getLogs").click(getLogs);
@@ -18,14 +18,14 @@ $(function(){
   $(document).ajaxSend(function(event, request, settings) {
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').show();
-      getStatus();
+      getStatus(function(time) {});
     }
   });
 
   $(document).ajaxComplete(function(event, request, settings) {
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').hide();
-      getStatus();
+      getStatus(function(time) {});
     }
   });
 });
@@ -71,9 +71,15 @@ function loadDefaultIP() {
   }
 }
 
-function getStatus() {
+function getStatusLoop()
+{
+  getStatus(function(time) {
+    setTimeout(getStatusLoop, time);
+  });
+}
 
-  $.ajax({
+function getStatus(callback) {
+  return $.ajax({
     url: "/status",
     dataType: 'json',
     success: function(result) {
@@ -87,12 +93,12 @@ function getStatus() {
         c = "red";
       }
       $('#status').css('color', c);
-      setTimeout(getStatus, 1000);
+      callback(1000);
     },
     error: function(arg1, arg2) {
       setStatus('Lost Connection to PITS');
       $('#status').css('color', 'red');
-      setTimeout(getStatus, 5000);
+      callback(5000)
     },
   });
 }
