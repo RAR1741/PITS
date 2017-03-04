@@ -71,13 +71,15 @@ function loadDefaultIP() {
   }
 }
 
-function getStatusLoop()
-{
+//passes getStatus a callback to call itself or something
+//I don't even know any more
+function getStatusLoop() {
   getStatus(function(time) {
     setTimeout(getStatusLoop, time);
   });
 }
 
+//callback is a function that is passed the amount of time to wait for
 function getStatus(callback) {
   return $.ajax({
     url: "/status",
