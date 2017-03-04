@@ -7,7 +7,7 @@ $(function(){
 
   loadDefaultIP();
 
-  setInterval(getStatus, 1000);
+  setTimeout(getStatus, 1000);
   //setStatus();
 
   $("#getLogs").click(getLogs);
@@ -88,9 +88,11 @@ function getStatus() {
         c = "red";
       }
       $('#status').css('color', c);
+      setTimeout(getStatus, 1000);
     },
     error: function(arg1, arg2) {
       setStatus('Lost Connection to PITS');
+      setTimeout(getStatus, 5000);
     },
   });
 }
