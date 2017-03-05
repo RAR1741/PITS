@@ -7,8 +7,8 @@ $(function(){
 
   loadDefaultIP();
 
+  getStatus();
   setTimeout(getStatusLoop, 1000);
-  //setStatus();
 
   $("#getLogs").click(getLogs);
 
@@ -18,14 +18,14 @@ $(function(){
   $(document).ajaxSend(function(event, request, settings) {
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').show();
-      getStatus(function(time) {});
+      getStatus();
     }
   });
 
   $(document).ajaxComplete(function(event, request, settings) {
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').hide();
-      getStatus(function(time) {});
+      getStatus();
     }
   });
 });
@@ -80,8 +80,8 @@ function getStatusLoop() {
 }
 
 //callback is a function that is passed the amount of time to wait for
-function getStatus(callback) {
-  return $.ajax({
+function getStatus(callback = function(time) {}) {
+  $.ajax({
     url: "/status",
     dataType: 'json',
     success: function(result) {
