@@ -85,7 +85,6 @@ function getStatus(callback) {
     url: "/status",
     dataType: 'json',
     success: function(result) {
-      setStatus(result.pits_status);
       var c = "black";
       if(result.status.match("good")) {
         c = "green";
@@ -94,18 +93,19 @@ function getStatus(callback) {
       } else if (result.status.match("error")) {
         c = "red";
       }
-      $('#status').css('color', c);
+      setStatus(result.pits_status, c);
       callback(1000);
     },
     error: function(arg1, arg2) {
-      setStatus('Lost Connection to PITS');
-      $('#status').css('color', 'red');
+      setStatus('Lost Connection to PITS', 'red');
       callback(5000)
     },
   });
 }
 
-function setStatus(text) {
+function setStatus(text, color) {
   $("#status").text(text);
   $("#load-status").text(text);
+  $('#status').css('color', color);
+  $('#load-status').css('color', color);
 }
