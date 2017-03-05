@@ -19,6 +19,7 @@ $(function(){
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').show();
       getStatus();
+      highSpeed = 100;
     }
   });
 
@@ -26,9 +27,12 @@ $(function(){
     if(!settings.url.match("/status")) {
     	$('#loading-indicator').hide();
       getStatus();
+      highSpeed = 0;
     }
   });
 });
+
+var highSpeed = 0;
 
 function setupEditor() {
   window.editor = ace.edit("editor");
@@ -94,7 +98,11 @@ function getStatus(callback = function(time) {}) {
         c = "red";
       }
       setStatus(result.pits_status, c);
-      callback(1000);
+      if(highSpeed == 0) {
+        callback(1000);
+      } else {
+        callback(highSpeed);
+      }
     },
     error: function(arg1, arg2) {
       setStatus('Lost Connection to PITS', 'red');
