@@ -6,6 +6,8 @@ html
   body
     h1 PITS
 
+    div#status Connecting to PITS
+
     #content
       div.half.left
         p We should probably put some things here... ¯\_(ツ)_/¯
@@ -23,11 +25,11 @@ html
 
           input value='other' id="ipO" type='radio' name="robotIP" class="ip"
           label for="ipO"
-            | Other: 
+            | Other:
             input type='text' id="ip" value=''
 
         button type="button" id="getLogs" Get logs
-      
+
       div.half.right
         button type="button" id="getConfig" Get config
         button type="button" id="pushConfig" Push config
@@ -38,7 +40,9 @@ html
         div#editor
 
     div#loading-indicator
-      img src="/assets/loading/swerve-spin.gif"
+      div#loading-box
+        img src="/assets/loading/swerve-spin.gif"
+        div#load-status Default
 
     script src="js/lib/jquery.min.js"
     script src="js/lib/ace/ace.js"

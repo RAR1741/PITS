@@ -7,19 +7,32 @@ $(function(){
 
   loadDefaultIP();
 
+  getStatus();
+  setTimeout(getStatusLoop, 1000);
+
   $("#getLogs").click(getLogs);
 
   $("#getConfig").click(window.config.getConfig);
   $("#pushConfig").click(window.config.pushConfig);
 
   $(document).ajaxSend(function(event, request, settings) {
-    $('#loading-indicator').show();
+    if(!settings.url.match("/status")) {
+    	$('#loading-indicator').show();
+      getStatus();
+      highSpeed = 100;
+    }
   });
 
   $(document).ajaxComplete(function(event, request, settings) {
-    $('#loading-indicator').hide();
+    if(!settings.url.match("/status")) {
+    	$('#loading-indicator').hide();
+      getStatus();
+      highSpeed = 0;
+    }
   });
 });
+
+var highSpeed = 0;
 
 function setupEditor() {
   window.editor = ace.edit("editor");
@@ -60,4 +73,47 @@ function loadDefaultIP() {
       $("input.ip[value='other']").prop("checked", true)
     }
   }
+}
+
+//passes getStatus a callback to call itself or something
+//I don't even know any more
+function getStatusLoop() {
+  getStatus(function(time) {
+    setTimeout(getStatusLoop, time);
+  });
+}
+
+//callback is a function that is passed the amount of time to wait for
+function getStatus(callback = function(time) {}) {
+  $.ajax({
+    url: "/status",
+    dataType: 'json',
+    success: function(result) {
+      var c = "black";
+      if(result.status.match("good")) {
+        c = "green";
+      } else if (result.status.match("working")) {
+        c = "yellow";
+      } else if (result.status.match("error")) {
+        c = "red";
+      }
+      setStatus(result.pits_status, c);
+      if(highSpeed == 0) {
+        callback(1000);
+      } else {
+        callback(highSpeed);
+      }
+    },
+    error: function(arg1, arg2) {
+      setStatus('Lost Connection to PITS', 'red');
+      callback(5000)
+    },
+  });
+}
+
+function setStatus(text, color) {
+  $("#status").text(text);
+  $("#load-status").text(text);
+  $('#status').css('color', color);
+  $('#load-status').css('color', color);
 }

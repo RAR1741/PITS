@@ -9,12 +9,32 @@ body {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.8);
 
-    img {
+    #loading-box {
       z-index: 100;
       position: absolute;
-      left: calc(50% - 92.5px);
-      top: calc(50% - 74px);
+      left: calc(50% - 100px);
+      top : calc(50% - 100px);
+      width: 205px;
+      height: 200px;
+      background-color: rgba(255,255,255,1);
+
+      img {
+        z-index: 100;
+        position: absolute;
+        left: calc(50% - 92.5px);
+        top: calc(50% - 90px);
+      }
+      #load-status {
+        z-index: 100;
+        position: absolute;
+        left: calc(50% - 92.5px);
+        top: calc(50% + 60px);
+      }
     }
+  }
+
+  #status {
+    color: yellow;
   }
 
   #content {
