@@ -4,9 +4,6 @@ volumes:
   bundle_cache:
 
 services:
-  ##############
-  # BOT SERVER #
-  ##############
   backend:
     build:
       context: .
