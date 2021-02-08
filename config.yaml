@@ -5,7 +5,7 @@ robot:
   ip: 'roborio-1751-frc.local'
   username: 'lvuser'
 log_settings:
-  repo_path:  'RA17_LogFileArchive'
-  local_path: 'RA17_LogFileArchive/logs/'
+  repo_path:  'RA21_LogFileArchive'
+  local_path: 'RA21_LogFileArchive/logs/'
   ftp_path:   '/home/lvuser/'
   remote_path: 'logs/'
