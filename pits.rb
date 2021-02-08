@@ -10,10 +10,9 @@ require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
-
   def initialize
     super()
-    @config = YAML.load(File.read('config.yaml'))
+    @config = YAML.safe_load(File.read('config.yaml'))
 
     repo_path =
       File.join(
@@ -27,7 +26,7 @@ class PITS < Sinatra::Base
   end
 
   get '/' do
-    #status = 'test'
+    # status = 'test'
     slim :index
   end
 
@@ -64,7 +63,7 @@ class PITS < Sinatra::Base
   end
 
   get '/css/*.css' do
-    content_type 'text/css', :charset => 'utf-8'
+    content_type 'text/css', charset: 'utf-8'
     filename = params[:splat].first
     scss filename.to_sym, views: "#{settings.root}/stylesheets"
   end
@@ -84,9 +83,9 @@ class PITS < Sinatra::Base
   def put_config(ip)
     @@pits_status = createJSON('Connecting to Robot', 'good')
     Net::FTP.open(ip) do |ftp|
-      #login and change directory
+      # login and change directory
       ftp.login
-      ftp.chdir("#{@config['log_settings']['ftp_path']}")
+      ftp.chdir((@config['log_settings']['ftp_path']).to_s)
       # Initial upload
       @@pits_status = createJSON('Uploading Config File', 'working')
       ftp.puttextfile 'config.txt', 'config.txt.bak'
@@ -101,20 +100,20 @@ class PITS < Sinatra::Base
       file_1_contents = File.open('config.txt', 'r').read
       file_2_contents = File.open('config.txt.bak', 'r').read
 
-      #rename and overwrite old config
+      # rename and overwrite old config
       if file_1_contents == file_2_contents
         ftp.rename('config.txt.bak', 'config.txt')
       end
     end
     @@pits_status = createJSON('Config Pushed', 'good')
-  rescue SocketError => error
-    if !error.message[/getaddrinfo/].nil?
-      @@pits_status = createJSON("Robot Not Found", 'error')
+  rescue SocketError => e
+    if !e.message[/getaddrinfo/].nil?
+      @@pits_status = createJSON('Robot Not Found', 'error')
       pp 'Robot not found...'
     else
       pp 'Some other socket thing was a no...'
-      @@pits_status = createJSON("mumble mumble sockets", 'error')
-      pp error
+      @@pits_status = createJSON('mumble mumble sockets', 'error')
+      pp e
     end
   end
 
@@ -124,10 +123,10 @@ class PITS < Sinatra::Base
     Net::FTP.open(ip) do |ftp|
       remote_file = 'config.txt'
       local_file = 'config.txt'
-      #login to ftp and change directory
+      # login to ftp and change directory
       ftp.login
-      ftp.chdir("#{@config['log_settings']['ftp_path']}")
-      #copy the file to local
+      ftp.chdir((@config['log_settings']['ftp_path']).to_s)
+      # copy the file to local
       @@pits_status = createJSON('Downloading Config File', 'working')
       temp = ftp.gettextfile(
         remote_file,
@@ -140,14 +139,14 @@ class PITS < Sinatra::Base
     end
     @@pits_status = createJSON('Config Pulled', 'good')
     contents
-  rescue SocketError => error
-    if !error.message[/getaddrinfo/].nil?
-      @@pits_status = createJSON("Robot Not Found", 'error')
+  rescue SocketError => e
+    if !e.message[/getaddrinfo/].nil?
+      @@pits_status = createJSON('Robot Not Found', 'error')
       pp 'Robot not found...'
     else
       pp 'Some other socket thing was a no...'
-      @@pits_status = createJSON("mumble mumble sockets", 'error')
-      pp error
+      @@pits_status = createJSON('mumble mumble sockets', 'error')
+      pp e
     end
   end
 
@@ -178,14 +177,14 @@ class PITS < Sinatra::Base
     @@pits_status = createJSON('Connecting to Robot', 'good')
 
     Net::FTP.open(ip) do |ftp|
-      #login and change directory
+      # login and change directory
       ftp.login
 
       chdir_path =
         @config['log_settings']['ftp_path'] +
         @config['log_settings']['remote_path']
 
-      ftp.chdir("#{chdir_path}")
+      ftp.chdir(chdir_path.to_s)
 
       git_update
 
@@ -193,7 +192,7 @@ class PITS < Sinatra::Base
 
       pulled_file = false
 
-      ftp.nlst().each do |file|
+      ftp.nlst.each do |file|
         pp "Pulling file: #{file}"
 
         # Make the local folder, if needed
@@ -207,9 +206,7 @@ class PITS < Sinatra::Base
           date_dir + file
         )
 
-        if @config['logs']['delete_logs']
-          ftp.delete(file)
-        end
+        ftp.delete(file) if @config['logs']['delete_logs']
 
         pulled_file = true
       end
@@ -219,18 +216,18 @@ class PITS < Sinatra::Base
       @@pits_status = createJSON('Logs Pulled', 'good')
     end
     pp 'Finished with no errors...'
-  rescue SocketError => error
-    if !error.message[/getaddrinfo/].nil?
-      @@pits_status = createJSON("Robot Not Found", 'error')
+  rescue SocketError => e
+    if !e.message[/getaddrinfo/].nil?
+      @@pits_status = createJSON('Robot Not Found', 'error')
       pp 'Robot not found...'
     else
       pp 'Some other socket thing was a no'
-      @@pits_status = createJSON("mumble mumble sockets", 'error')
-      pp error
+      @@pits_status = createJSON('mumble mumble sockets', 'error')
+      pp e
     end
   end
 
-  def createJSON (status, warn)
+  def createJSON(status, warn)
     "{\"pits_status\":\"#{status}\",\"status\":\"#{warn}\"}"
   end
 end
