@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'sinatra/base'
+require 'sinatra/reloader'
 require 'yaml'
 require 'slim'
 require 'pry'
@@ -10,6 +11,8 @@ require 'sass'
 
 # Main PITS class
 class PITS < Sinatra::Base
+  register Sinatra::Reloader
+
   def initialize
     super()
     @config = YAML.safe_load(File.read('config.yaml'))
