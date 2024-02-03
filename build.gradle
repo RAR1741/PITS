@@ -21,8 +21,8 @@ dependencies {
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // This dependency is used by the application.
-    implementation libs.guava
+    // Apache Commons for FTP
+    implementation 'commons-net:commons-net:3.10.0'
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
