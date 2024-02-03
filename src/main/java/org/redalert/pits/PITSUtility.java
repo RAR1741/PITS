@@ -57,15 +57,15 @@ public class PITSUtility extends Frame implements ActionListener {
             String ipAddress = ipTextField.getText();
             String directory = directoryTextField.getText();
             switch (downloader.download(ipAddress, directory)) {
-                case 1 -> {
+                case 1:
                     JOptionPane.showMessageDialog(null, "Could not connect to robot", "Download error", JOptionPane.WARNING_MESSAGE);
-                }
-                case 2 -> {
+                    break;
+                case 2:
                     JOptionPane.showMessageDialog(null, "Robot refused connection", "Download error", JOptionPane.WARNING_MESSAGE);
-                }
-                default -> {
+                    break;
+                default:
                     JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
-                }
+                    break;
 
             }
         } else if (e.getSource() == commitButton) {
