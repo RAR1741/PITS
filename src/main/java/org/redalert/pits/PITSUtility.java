@@ -1,5 +1,6 @@
 package org.redalert.pits;
 
+import javax.swing.JOptionPane;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,12 +18,12 @@ public class PITSUtility extends Frame implements ActionListener {
 
         // IP Address Label and TextField
         add(new Label("IP Address:"));
-        ipTextField = new TextField(25);
+        ipTextField = new TextField("10.17.41.2",25);
         add(ipTextField);
 
         // Directory Label and TextField
         add(new Label("Directory:"));
-        directoryTextField = new TextField(25);
+        directoryTextField = new TextField("/home/lvuser/logs",25);
         add(directoryTextField);
 
         // Download Button
@@ -55,7 +56,18 @@ public class PITSUtility extends Frame implements ActionListener {
             // Implement download functionality
             String ipAddress = ipTextField.getText();
             String directory = directoryTextField.getText();
-            downloader.download(ipAddress, directory);
+            switch (downloader.download(ipAddress, directory)) {
+                case 1 -> {
+                    JOptionPane.showMessageDialog(null, "Could not connect to robot", "Download error", JOptionPane.WARNING_MESSAGE);
+                }
+                case 2 -> {
+                    JOptionPane.showMessageDialog(null, "Robot refused connection", "Download error", JOptionPane.WARNING_MESSAGE);
+                }
+                default -> {
+                    JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
+                }
+
+            }
         } else if (e.getSource() == commitButton) {
             // Implement commit functionality
             String ipAddress = ipTextField.getText();
