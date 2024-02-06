@@ -12,6 +12,7 @@ public class PITSUtility extends Frame implements ActionListener {
     private final TextField directoryTextField;
     private final Button downloadButton;
     private final Button commitButton;
+    public static Label status;
     public PITSUtility() {
         // Set layout
         setLayout(new FlowLayout(FlowLayout.LEADING, 10, 10));
@@ -35,6 +36,10 @@ public class PITSUtility extends Frame implements ActionListener {
         commitButton = new Button("Commit");
         add(commitButton);
         commitButton.addActionListener(this);
+
+        // Status
+        status = new Label("**************READY**************");
+        add(status);
 
         // Set frame properties
         setTitle("PITS Utility");
@@ -76,5 +81,8 @@ public class PITSUtility extends Frame implements ActionListener {
             System.out.println("IP Address: " + ipAddress);
             System.out.println("Directory: " + directory);
         }
+    }
+    public static void setStatus(String newStatus) {
+        status.setText(newStatus);
     }
 }
