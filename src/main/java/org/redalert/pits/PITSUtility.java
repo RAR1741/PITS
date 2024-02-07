@@ -56,23 +56,13 @@ public class PITSUtility extends Frame implements ActionListener {
 
     // Action listener for buttons
     public void actionPerformed(ActionEvent e) {
-        LogDownload downloader = new LogDownload();
         if (e.getSource() == downloadButton) {
             // Implement download functionality
             String ipAddress = ipTextField.getText();
             String directory = directoryTextField.getText();
-            switch (downloader.download(ipAddress, directory)) {
-                case 1:
-                    JOptionPane.showMessageDialog(null, "Could not connect to robot", "Download error", JOptionPane.WARNING_MESSAGE);
-                    break;
-                case 2:
-                    JOptionPane.showMessageDialog(null, "Robot refused connection", "Download error", JOptionPane.WARNING_MESSAGE);
-                    break;
-                default:
-                    JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
-                    break;
+            LogDownload downloader = new LogDownload(ipAddress, directory);
+            downloader.start();
 
-            }
         } else if (e.getSource() == commitButton) {
             // Implement commit functionality
             String ipAddress = ipTextField.getText();
@@ -84,5 +74,19 @@ public class PITSUtility extends Frame implements ActionListener {
     }
     public static void setStatus(String newStatus) {
         status.setText(newStatus);
+    }
+    public static void displayStatus(int status) {
+        switch (status) {
+            case 1:
+                JOptionPane.showMessageDialog(null, "Could not connect to robot", "Download error", JOptionPane.WARNING_MESSAGE);
+                break;
+            case 2:
+                JOptionPane.showMessageDialog(null, "Robot refused connection", "Download error", JOptionPane.WARNING_MESSAGE);
+                break;
+            default:
+                JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
+                break;
+
+        }
     }
 }

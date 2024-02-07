@@ -6,7 +6,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class LogDownload {
+public class LogDownload extends Thread {
+    String ip;
+    String path;
+
+    @Override
+    public void run() {
+        PITSUtility.displayStatus(download(ip, path));
+    }
+    public LogDownload(String ip, String path) {
+        this.ip = ip;
+        this.path = path;
+    }
+
     public int download(String ip, String path) {
         FTPClient ftp = new FTPClient();
         System.out.println("Connecting to robot");
