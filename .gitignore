@@ -4,6 +4,12 @@
 # Ignore Gradle build output directory
 build
 
-.idea
+# Ignore log files
 *.wpilog
 *.hoot
+
+# VSCode only
+bin
+
+# IntelliJ only
+.idea
