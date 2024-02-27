@@ -11,8 +11,8 @@ import java.io.OutputStream;
 import java.io.File;
 
 public class LogDownload extends Thread {
-    String ip;
-    String path;
+    private String ip;
+    private String path;
 
     @Override
     public void run() {

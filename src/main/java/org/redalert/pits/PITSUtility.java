@@ -13,18 +13,19 @@ public class PITSUtility extends Frame implements ActionListener {
     private final Button downloadButton;
     private final Button commitButton;
     public static Label status;
+
     public PITSUtility() {
         // Set layout
         setLayout(new FlowLayout(FlowLayout.LEADING, 10, 10));
 
         // IP Address Label and TextField
         add(new Label("IP Address:"));
-        ipTextField = new TextField("10.17.41.2",25);
+        ipTextField = new TextField("10.17.41.2", 25);
         add(ipTextField);
 
         // Directory Label and TextField
         add(new Label("Directory:"));
-        directoryTextField = new TextField("/media/sda1/logs",25);
+        directoryTextField = new TextField("/media/sda1/logs", 25);
         add(directoryTextField);
 
         // Download Button
@@ -62,7 +63,6 @@ public class PITSUtility extends Frame implements ActionListener {
             String directory = directoryTextField.getText();
             LogDownload downloader = new LogDownload(ipAddress, directory);
             downloader.start();
-
         } else if (e.getSource() == commitButton) {
             // Implement commit functionality
             String ipAddress = ipTextField.getText();
@@ -72,9 +72,11 @@ public class PITSUtility extends Frame implements ActionListener {
             System.out.println("Directory: " + directory);
         }
     }
+
     public static void setStatus(String newStatus) {
         status.setText(newStatus);
     }
+
     public static void displayStatus(int status) {
         switch (status) {
             case 1:
@@ -89,7 +91,6 @@ public class PITSUtility extends Frame implements ActionListener {
             default:
                 JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
                 break;
-
         }
     }
 }
