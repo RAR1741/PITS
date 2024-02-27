@@ -24,7 +24,7 @@ public class PITSUtility extends Frame implements ActionListener {
 
         // Directory Label and TextField
         add(new Label("Directory:"));
-        directoryTextField = new TextField("/home/lvuser/logs",25);
+        directoryTextField = new TextField("/media/sda1/logs",25);
         add(directoryTextField);
 
         // Download Button
@@ -32,10 +32,10 @@ public class PITSUtility extends Frame implements ActionListener {
         add(downloadButton);
         downloadButton.addActionListener(this);
 
-        // Commit Button
+        // Commit Button (NOT IMPLEMENTED)
         commitButton = new Button("Commit");
-        add(commitButton);
-        commitButton.addActionListener(this);
+        //add(commitButton);
+        //commitButton.addActionListener(this);
 
         // Status
         status = new Label("**************READY**************");
@@ -82,6 +82,9 @@ public class PITSUtility extends Frame implements ActionListener {
                 break;
             case 2:
                 JOptionPane.showMessageDialog(null, "Robot refused connection", "Download error", JOptionPane.WARNING_MESSAGE);
+                break;
+            case 3:
+                JOptionPane.showMessageDialog(null, "Could not create the download folder", "I/O error", JOptionPane.WARNING_MESSAGE);
                 break;
             default:
                 JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);

@@ -2,9 +2,13 @@ package org.redalert.pits;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
+import org.apache.commons.io.FileUtils;
+
+import javax.swing.JOptionPane;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.File;
 
 public class LogDownload extends Thread {
     String ip;
@@ -35,6 +39,34 @@ public class LogDownload extends Thread {
             try {
                 String[] files = ftp.listNames();
                 if (files != null) {
+                    File folderCheck = new File("./logs");
+                    if (!folderCheck.exists()) {
+                        try {
+                            if (folderCheck.mkdir()) {
+                                System.out.println("Created log folder");
+                            } else {
+                                return 3;
+                            }
+                        } catch (SecurityException e) {
+                            System.out.println("Security exception when creating log folder");
+                        }
+                    } else {
+                        int reply = JOptionPane.showConfirmDialog(null, "Log folder already exists. Overwrite it?", "Overwrite folder", JOptionPane.YES_NO_OPTION);
+                        if (reply == JOptionPane.YES_OPTION) {
+                            try {
+                                FileUtils.deleteDirectory(new File("./logs"));
+                                if (folderCheck.mkdir()) {
+                                    System.out.println("Overwrote log folder");
+                                } else {
+                                    return 3;
+                                }
+                            } catch (SecurityException e) {
+                                System.out.println("Security exception when overwriting log folder");
+                            }
+                        } else {
+                            return 3;
+                        }
+                    }
                     for (int x = 0; x < files.length; x++) {
                         String remoteFilePath = path + "/" + files[x];
                         String localFilePath =  "./logs/" + files[x];
@@ -44,6 +76,7 @@ public class LogDownload extends Thread {
                             System.out.println("Downloaded file " + remoteFilePath);
                         }
                     }
+                    PITSUtility.setStatus("**************READY**************");
                 }
                 ftp.disconnect();
                 return 0;
