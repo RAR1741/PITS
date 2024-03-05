@@ -1,19 +1,15 @@
-*.rbc
-*.sassc
-.sass-cache
-capybara-*.html
-.rspec
-/.bundle
-/vendor/bundle
-/log/*
-/tmp/*
-/db/*.sqlite3
-/public/system/*
-/coverage/
-/spec/tmp/*
-**.orig
-rerun.txt
-pickle-email-*.html
-config.txt
-config.txt.bak
-.project
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+# Logs
+*.wpilog
+*.hoot
+
+# IntelliJ
+.idea
+
+# Visual Studio Code
+bin
