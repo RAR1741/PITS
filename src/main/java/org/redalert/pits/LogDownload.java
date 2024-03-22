@@ -14,18 +14,20 @@ public class LogDownload extends Thread {
     private final String ip;
     private final String path;
     private final boolean delete;
+    private final boolean append;
 
     @Override
     public void run() {
-        PITSUtility.displayStatus(download(ip, path, delete));
+        PITSUtility.displayStatus(download(ip, path, delete, append));
     }
-    public LogDownload(String ip, String path, boolean delete) {
+    public LogDownload(String ip, String path, boolean delete, boolean append) {
         this.ip = ip;
         this.path = path;
         this.delete = delete;
+        this.append = append;
     }
 
-    public int download(String ip, String path, boolean delete) {
+    public int download(String ip, String path, boolean delete, boolean append) {
         FTPClient ftp = new FTPClient();
         System.out.println("Connecting to robot");
         try {
@@ -53,20 +55,22 @@ public class LogDownload extends Thread {
                             System.out.println("Security exception when creating log folder");
                         }
                     } else {
-                        int reply = JOptionPane.showConfirmDialog(null, "Log folder already exists. Overwrite it?", "Overwrite folder", JOptionPane.YES_NO_OPTION);
-                        if (reply == JOptionPane.YES_OPTION) {
-                            try {
-                                FileUtils.deleteDirectory(new File("./logs"));
-                                if (folderCheck.mkdir()) {
-                                    System.out.println("Overwrote log folder");
-                                } else {
-                                    return 3;
+                        if (!append) {
+                            int reply = JOptionPane.showConfirmDialog(null, "Log folder already exists. Overwrite it?", "Overwrite folder", JOptionPane.YES_NO_OPTION);
+                            if (reply == JOptionPane.YES_OPTION) {
+                                try {
+                                    FileUtils.deleteDirectory(new File("./logs"));
+                                    if (folderCheck.mkdir()) {
+                                        System.out.println("Overwrote log folder");
+                                    } else {
+                                        return 3;
+                                    }
+                                } catch (SecurityException e) {
+                                    System.out.println("Security exception when overwriting log folder");
                                 }
-                            } catch (SecurityException e) {
-                                System.out.println("Security exception when overwriting log folder");
+                            } else {
+                                return 3;
                             }
-                        } else {
-                            return 3;
                         }
                     }
                     for (int x = 0; x < files.length; x++) {
