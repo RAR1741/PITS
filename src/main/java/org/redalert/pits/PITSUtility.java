@@ -54,7 +54,7 @@ public class PITSUtility extends Frame implements ActionListener {
 
         // Set frame properties
         setTitle("PITS Utility");
-        setSize(235, 255);
+        setSize(235, 290);
         setVisible(true);
 
         // Handle window close event
