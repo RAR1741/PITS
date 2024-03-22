@@ -16,11 +16,6 @@ repositories {
 }
 
 dependencies {
-    // Use JUnit Jupiter for testing.
-    testImplementation libs.junit.jupiter
-
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
     // Apache Commons for FTP
     implementation 'commons-net:commons-net:3.10.0'
     implementation 'commons-io:commons-io:2.15.1'
@@ -36,9 +31,4 @@ java {
 application {
     // Define the main class for the application.
     mainClass = 'org.redalert.pits.Main'
-}
-
-tasks.named('test') {
-    // Use JUnit Platform for unit tests.
-    useJUnitPlatform()
 }
