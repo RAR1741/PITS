@@ -11,19 +11,21 @@ import java.io.OutputStream;
 import java.io.File;
 
 public class LogDownload extends Thread {
-    private String ip;
-    private String path;
+    private final String ip;
+    private final String path;
+    private final boolean delete;
 
     @Override
     public void run() {
-        PITSUtility.displayStatus(download(ip, path));
+        PITSUtility.displayStatus(download(ip, path, delete));
     }
-    public LogDownload(String ip, String path) {
+    public LogDownload(String ip, String path, boolean delete) {
         this.ip = ip;
         this.path = path;
+        this.delete = delete;
     }
 
-    public int download(String ip, String path) {
+    public int download(String ip, String path, boolean delete) {
         FTPClient ftp = new FTPClient();
         System.out.println("Connecting to robot");
         try {
@@ -74,6 +76,10 @@ public class LogDownload extends Thread {
                         OutputStream outputStream = new FileOutputStream(localFilePath);
                         if (ftp.retrieveFile(remoteFilePath, outputStream)) {
                             System.out.println("Downloaded file " + remoteFilePath);
+                            if (delete) {
+                                ftp.deleteFile(remoteFilePath);
+                                System.out.println("Deleted file " + remoteFilePath);
+                            }
                         }
                     }
                     PITSUtility.setStatus("**************READY**************");
