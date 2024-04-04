@@ -14,20 +14,20 @@ public class LogDownload extends Thread {
     private final String ip;
     private final String path;
     private final boolean delete;
-    private final boolean append;
+    private final boolean overwrite;
 
     @Override
     public void run() {
-        PITSUtility.displayStatus(download(ip, path, delete, append));
+        PITSUtility.displayStatus(download(ip, path, delete, overwrite));
     }
-    public LogDownload(String ip, String path, boolean delete, boolean append) {
+    public LogDownload(String ip, String path, boolean delete, boolean overwrite) {
         this.ip = ip;
         this.path = path;
         this.delete = delete;
-        this.append = append;
+        this.overwrite = overwrite;
     }
 
-    public int download(String ip, String path, boolean delete, boolean append) {
+    public int download(String ip, String path, boolean delete, boolean overwrite) {
         FTPClient ftp = new FTPClient();
         System.out.println("Connecting to robot");
         try {
@@ -55,8 +55,8 @@ public class LogDownload extends Thread {
                             System.out.println("Security exception when creating log folder");
                         }
                     } else {
-                        if (!append) {
-                            int reply = JOptionPane.showConfirmDialog(null, "Log folder already exists. Overwrite it?", "Overwrite folder", JOptionPane.YES_NO_OPTION);
+                        if (overwrite) {
+                            int reply = JOptionPane.showConfirmDialog(null, "Delete existing log folder and create a new one?", "Overwrite folder", JOptionPane.YES_NO_OPTION);
                             if (reply == JOptionPane.YES_OPTION) {
                                 try {
                                     FileUtils.deleteDirectory(new File("./logs"));

@@ -45,7 +45,7 @@ public class PITSUtility extends Frame implements ActionListener {
         add(deleteToggle);
 
         // Append to folder checkbox
-        appendToggle = new Checkbox("Append to existing folder");
+        appendToggle = new Checkbox("Clear current folder");
         add(appendToggle);
 
         // Status
