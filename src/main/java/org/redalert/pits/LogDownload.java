@@ -28,17 +28,33 @@ public class LogDownload extends Thread {
         System.out.println("Connecting to robot");
         try {
             ftp.connect(ip);
+            // ftp.enterLocalPassiveMode();
             ftp.login("anonymous", "");
-            ftp.changeWorkingDirectory(path);
+            // ftp.changeWorkingDirectory(path);
             System.out.println("Connected to robot");
             if (!FTPReply.isPositiveCompletion(ftp.getReplyCode())) {
                 ftp.disconnect();
                 System.err.println("FTP server dropped the connection: Error " + ftp.getReplyCode());
                 return 2;
             }
+            System.out.println("==================== 5 ====================");
+
             try {
+                System.out.println("==================== 6 ====================");
                 String[] files = ftp.listNames();
+                // String[] files = ftp.listFiles(path);
+                System.out.println("==================== 1 ====================");
+
+                // try {
+                //     files = ftp.listNames();
+                // }
+                // catch (Exception exception) {
+                //     System.out.println(exception.getCause().getMessage());
+                // }
+
                 if (files != null) {
+                    System.out.println("==================== 2 ====================");
+
                     File folderCheck = new File("./logs");
                     if (!folderCheck.exists()) {
                         try {
@@ -67,7 +83,10 @@ public class LogDownload extends Thread {
                             return 3;
                         }
                     }
+
                     for (int x = 0; x < files.length; x++) {
+                        System.out.println("==================== 4 ====================");
+
                         String remoteFilePath = path + "/" + files[x];
                         String localFilePath =  "./logs/" + files[x];
                         PITSUtility.setStatus((x + 1) + "/" + files.length + ": " + files[x]);
@@ -76,9 +95,15 @@ public class LogDownload extends Thread {
                             System.out.println("Downloaded file " + remoteFilePath);
                         }
                     }
-                    PITSUtility.setStatus("**************READY**************");
+                    System.out.println("==================== 3 ====================");
+
+                    PITSUtility.setStatus("**************DONE**************");
+                } else {
+                    System.out.println("==================== 7 ====================");
                 }
+                System.out.println("==================== 8 ====================");
                 ftp.disconnect();
+                System.out.println("==================== 9 ====================");
                 return 0;
             } catch (IOException ioe) {
                 System.out.println("IO exception");
