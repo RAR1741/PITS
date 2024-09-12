@@ -13,7 +13,6 @@ public class PITSUtility extends Frame implements ActionListener {
     private final Button downloadButton;
     private final Button commitButton;
     private final Checkbox deleteToggle;
-    private final Checkbox appendToggle;
     public static Label status;
 
     public PITSUtility() {
@@ -44,10 +43,6 @@ public class PITSUtility extends Frame implements ActionListener {
         deleteToggle = new Checkbox("Delete after downloading");
         add(deleteToggle);
 
-        // Append to folder checkbox
-        appendToggle = new Checkbox("Clear current folder");
-        add(appendToggle);
-
         // Status
         status = new Label("**************READY**************");
         add(status);
@@ -71,7 +66,7 @@ public class PITSUtility extends Frame implements ActionListener {
             // Implement download functionality
             String ipAddress = ipTextField.getText();
             String directory = directoryTextField.getText();
-            LogDownload downloader = new LogDownload(ipAddress, directory, deleteToggle.getState(), appendToggle.getState());
+            LogDownload downloader = new LogDownload(ipAddress, directory, deleteToggle.getState());
             downloader.start();
         } else if (e.getSource() == commitButton) {
             // Implement commit functionality
@@ -100,6 +95,9 @@ public class PITSUtility extends Frame implements ActionListener {
                 break;
             default:
                 JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
+
+                PITSUtility.setStatus("**************READY**************");
+
                 break;
         }
     }
