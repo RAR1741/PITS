@@ -12,6 +12,7 @@ public class PITSUtility extends Frame implements ActionListener {
     private final TextField directoryTextField;
     private final Button downloadButton;
     private final Button commitButton;
+    private final Checkbox deleteToggle;
     public static Label status;
 
     public PITSUtility() {
@@ -38,13 +39,17 @@ public class PITSUtility extends Frame implements ActionListener {
         //add(commitButton);
         //commitButton.addActionListener(this);
 
+        // Delete checkbox
+        deleteToggle = new Checkbox("Delete after downloading");
+        add(deleteToggle);
+
         // Status
         status = new Label("**************READY**************");
         add(status);
 
         // Set frame properties
         setTitle("PITS Utility");
-        setSize(235, 235);
+        setSize(235, 290);
         setVisible(true);
 
         // Handle window close event
@@ -61,7 +66,7 @@ public class PITSUtility extends Frame implements ActionListener {
             // Implement download functionality
             String ipAddress = ipTextField.getText();
             String directory = directoryTextField.getText();
-            LogDownload downloader = new LogDownload(ipAddress, directory);
+            LogDownload downloader = new LogDownload(ipAddress, directory, deleteToggle.getState());
             downloader.start();
         } else if (e.getSource() == commitButton) {
             // Implement commit functionality
@@ -90,6 +95,9 @@ public class PITSUtility extends Frame implements ActionListener {
                 break;
             default:
                 JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
+
+                PITSUtility.setStatus("**************READY**************");
+
                 break;
         }
     }
