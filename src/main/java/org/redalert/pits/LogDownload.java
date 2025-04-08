@@ -29,7 +29,7 @@ public class LogDownload extends Thread {
     public int download(String ip, String path, boolean delete) {
         FTPClient ftpClient = new FTPClient();
 
-        System.out.println("Connecting to robot");
+        PITSUtility.setStatus("Connecting to robot...");
 
         try {
             ftpClient.connect(ip);
@@ -37,12 +37,12 @@ public class LogDownload extends Thread {
             ftpClient.login("anonymous", "");
             ftpClient.changeWorkingDirectory(path);
 
-            System.out.println("Connected to robot");
+            PITSUtility.setStatus("Connected to robot");
 
             if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
                 ftpClient.disconnect();
 
-                System.err.println("FTP server dropped the connection: Error " + ftpClient.getReplyCode());
+                PITSUtility.setStatus("Error: FTP server dropped the connection (code " + ftpClient.getReplyCode() + ")");
 
                 return PITSError.REFUSED_CONNECTION;
             }
@@ -56,43 +56,45 @@ public class LogDownload extends Thread {
                     if (!folderCheck.exists()) {
                         try {
                             if (folderCheck.mkdir()) {
-                                System.out.println("Created log folder");
+                                PITSUtility.setStatus("Created log folder");
                             } else {
                                 return PITSError.FAILED_DOWNLOAD_DIRECTORY_CREATION;
                             }
-                        } catch (SecurityException e) {
-                            System.out.println("Security exception when creating log folder");
+                        } catch (SecurityException securityException) {
+                            PITSUtility.setStatus("SecurityException when creating log folder");
                         }
                     }
 
-                    for (int x = 0; x < files.length; x++) {
-                        String remoteFilePath = path + "/" + files[x];
-                        String localFilePath =  "./logs/" + files[x];
+                    for (int i = 0; i < files.length; i++) {
+                        String remoteFilePath = path + "/" + files[i];
+                        String localFilePath =  "./logs/" + files[i];
 
-                        PITSUtility.setStatus((x + 1) + "/" + files.length + ": " + files[x]);
+                        PITSUtility.setStatus((i + 1) + "/" + files.length + ": " + files[i]);
 
                         OutputStream outputStream = new FileOutputStream(localFilePath);
                         if (ftpClient.retrieveFile(remoteFilePath, outputStream)) {
-                            System.out.println("Downloaded file " + remoteFilePath);
+                            PITSUtility.setStatus("Downloaded file " + remoteFilePath);
 
                             if (delete) {
                                 ftpClient.deleteFile(remoteFilePath);
 
-                                System.out.println("Deleted file " + remoteFilePath);
+                                PITSUtility.setStatus("Deleted file " + remoteFilePath);
                             }
                         }
                     }
 
                     PITSUtility.setStatus("**************DONE**************");
                 }
+
                 ftpClient.disconnect();
-                return 0;
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
+
+                return PITSError.SUCCESS;
+            } catch (IOException ioException) {
+                PITSUtility.setStatus("IOException occured while reading log file list");
             }
 
-        } catch (IOException e) {
-            System.out.println("Connection failed");
+        } catch (IOException ioException) {
+            PITSUtility.setStatus("Connection failed");
 
             return PITSError.FAILED_CONNECTION;
         }
