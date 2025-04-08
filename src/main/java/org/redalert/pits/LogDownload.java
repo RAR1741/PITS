@@ -1,10 +1,8 @@
 package org.redalert.pits;
+
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
-import org.apache.commons.io.FileUtils;
-
-import javax.swing.JOptionPane;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
