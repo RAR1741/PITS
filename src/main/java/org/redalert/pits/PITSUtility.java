@@ -10,9 +10,11 @@ import java.awt.event.WindowEvent;
 public class PITSUtility extends Frame implements ActionListener {
     private final TextField ipTextField;
     private final TextField directoryTextField;
+
     private final Button downloadButton;
-    private final Button commitButton;
+
     private final Checkbox deleteToggle;
+
     public static Label status;
 
     public PITSUtility() {
@@ -34,11 +36,6 @@ public class PITSUtility extends Frame implements ActionListener {
         add(downloadButton);
         downloadButton.addActionListener(this);
 
-        // Commit Button (NOT IMPLEMENTED)
-        commitButton = new Button("Commit");
-        //add(commitButton);
-        //commitButton.addActionListener(this);
-
         // Delete checkbox
         deleteToggle = new Checkbox("Delete after downloading");
         add(deleteToggle);
@@ -54,6 +51,7 @@ public class PITSUtility extends Frame implements ActionListener {
 
         // Handle window close event
         addWindowListener(new WindowAdapter() {
+            @Override
             public void windowClosing(WindowEvent windowEvent) {
                 System.exit(0);
             }
@@ -61,20 +59,16 @@ public class PITSUtility extends Frame implements ActionListener {
     }
 
     // Action listener for buttons
+    @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == downloadButton) {
             // Implement download functionality
             String ipAddress = ipTextField.getText();
             String directory = directoryTextField.getText();
+
             LogDownload downloader = new LogDownload(ipAddress, directory, deleteToggle.getState());
+
             downloader.start();
-        } else if (e.getSource() == commitButton) {
-            // Implement commit functionality
-            String ipAddress = ipTextField.getText();
-            String directory = directoryTextField.getText();
-            System.out.println("Commit button clicked");
-            System.out.println("IP Address: " + ipAddress);
-            System.out.println("Directory: " + directory);
         }
     }
 
@@ -84,21 +78,35 @@ public class PITSUtility extends Frame implements ActionListener {
 
     public static void displayStatus(int status) {
         switch (status) {
-            case 1:
-                JOptionPane.showMessageDialog(null, "Could not connect to robot", "Download error", JOptionPane.WARNING_MESSAGE);
-                break;
-            case 2:
-                JOptionPane.showMessageDialog(null, "Robot refused connection", "Download error", JOptionPane.WARNING_MESSAGE);
-                break;
-            case 3:
-                JOptionPane.showMessageDialog(null, "Could not create the download folder", "I/O error", JOptionPane.WARNING_MESSAGE);
-                break;
-            default:
+            case PITSError.FAILED_CONNECTION -> {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Could not connect to robot",
+                    "Download error",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+
+            case PITSError.REFUSED_CONNECTION -> {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Robot refused connection",
+                    "Download error",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+
+            case PITSError.FAILED_DOWNLOAD_DIRECTORY_CREATION -> {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Could not create the download folder",
+                    "I/O error",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+
+            default -> {
                 JOptionPane.showMessageDialog(null, "Download complete", "Success", JOptionPane.PLAIN_MESSAGE);
 
                 PITSUtility.setStatus("**************READY**************");
-
-                break;
+            }
         }
     }
 }

@@ -13,42 +13,52 @@ public class LogDownload extends Thread {
     private final String path;
     private final boolean delete;
 
-    @Override
-    public void run() {
-        PITSUtility.displayStatus(download(ip, path, delete));
-    }
     public LogDownload(String ip, String path, boolean delete) {
         this.ip = ip;
         this.path = path;
         this.delete = delete;
     }
 
+    @Override
+    public void run() {
+        int downloadStatus = download(ip, path, delete);
+
+        PITSUtility.displayStatus(downloadStatus);
+    }
+
     public int download(String ip, String path, boolean delete) {
-        FTPClient ftp = new FTPClient();
+        FTPClient ftpClient = new FTPClient();
+
         System.out.println("Connecting to robot");
+
         try {
-            ftp.connect(ip);
-            ftp.enterLocalPassiveMode();
-            ftp.login("anonymous", "");
-            ftp.changeWorkingDirectory(path);
+            ftpClient.connect(ip);
+            ftpClient.enterLocalPassiveMode();
+            ftpClient.login("anonymous", "");
+            ftpClient.changeWorkingDirectory(path);
+
             System.out.println("Connected to robot");
-            if (!FTPReply.isPositiveCompletion(ftp.getReplyCode())) {
-                ftp.disconnect();
-                System.err.println("FTP server dropped the connection: Error " + ftp.getReplyCode());
-                return 2;
+
+            if (!FTPReply.isPositiveCompletion(ftpClient.getReplyCode())) {
+                ftpClient.disconnect();
+
+                System.err.println("FTP server dropped the connection: Error " + ftpClient.getReplyCode());
+
+                return PITSError.REFUSED_CONNECTION;
             }
 
             try {
-                String[] files = ftp.listNames();
+                String[] files = ftpClient.listNames();
 
                 if (files != null) {
                     File folderCheck = new File("./logs");
+
                     if (!folderCheck.exists()) {
                         try {
                             if (folderCheck.mkdir()) {
                                 System.out.println("Created log folder");
                             } else {
-                                return 3;
+                                return PITSError.FAILED_DOWNLOAD_DIRECTORY_CREATION;
                             }
                         } catch (SecurityException e) {
                             System.out.println("Security exception when creating log folder");
@@ -58,12 +68,16 @@ public class LogDownload extends Thread {
                     for (int x = 0; x < files.length; x++) {
                         String remoteFilePath = path + "/" + files[x];
                         String localFilePath =  "./logs/" + files[x];
+
                         PITSUtility.setStatus((x + 1) + "/" + files.length + ": " + files[x]);
+
                         OutputStream outputStream = new FileOutputStream(localFilePath);
-                        if (ftp.retrieveFile(remoteFilePath, outputStream)) {
+                        if (ftpClient.retrieveFile(remoteFilePath, outputStream)) {
                             System.out.println("Downloaded file " + remoteFilePath);
+
                             if (delete) {
-                                ftp.deleteFile(remoteFilePath);
+                                ftpClient.deleteFile(remoteFilePath);
+
                                 System.out.println("Deleted file " + remoteFilePath);
                             }
                         }
@@ -71,7 +85,7 @@ public class LogDownload extends Thread {
 
                     PITSUtility.setStatus("**************DONE**************");
                 }
-                ftp.disconnect();
+                ftpClient.disconnect();
                 return 0;
             } catch (IOException ioe) {
                 ioe.printStackTrace();
@@ -79,8 +93,10 @@ public class LogDownload extends Thread {
 
         } catch (IOException e) {
             System.out.println("Connection failed");
-            return 1;
+
+            return PITSError.FAILED_CONNECTION;
         }
-        return 0;
+
+        return PITSError.SUCCESS;
     }
 }
