@@ -34,7 +34,7 @@ public class PITSUtility extends Frame implements ActionListener {
         // Download Button
         downloadButton = new Button("Download");
         add(downloadButton);
-        downloadButton.addActionListener(this);
+        downloadButton.addActionListener(PITSUtility.this);
 
         // Delete checkbox
         deleteToggle = new Checkbox("Delete after downloading");
@@ -60,8 +60,8 @@ public class PITSUtility extends Frame implements ActionListener {
 
     // Action listener for buttons
     @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == downloadButton) {
+    public void actionPerformed(ActionEvent event) {
+        if (event.getSource() == downloadButton) {
             // Implement download functionality
             String ipAddress = ipTextField.getText();
             String directory = directoryTextField.getText();
